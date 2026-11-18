@@ -12,7 +12,7 @@
 - `.python-version` = `3.12`.
 - `uv add numpy pandas pyarrow pillow opencv-python-headless scikit-image scikit-learn scipy statsmodels matplotlib seaborn pydantic pyyaml joblib tqdm requests typer rich`
 - `uv add --dev pytest pytest-cov ruff mypy jupytext nbclient ipykernel nbformat nbstripout`
-- Do **not** add torch/timm yet (P7 adds them).
+- Do **not** add torch/timm yet (P7A adds them).
 - **Accept:** `uv run python -c "import foodlens, cv2, sklearn; print('ok')"` prints ok.
 
 ### P0.T2: Package layout

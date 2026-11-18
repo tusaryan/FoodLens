@@ -1,11 +1,10 @@
 # PROGRESS: single source of truth for "where are we"
 
 ## Current state (rewrite every session, 3–6 lines)
-- S09 (2026-11-19) finished **P6** (T1–T5): model zoo with nested grouped tuning (`models/classical.py`), `foodlens train --experiment` (model_zoo, light_ablation, feature_groups, relative), `foodlens finalize` (selection rule, permutation test, calibration + OOD, importance, PDP, final model + card). check.sh PASS (152 tests).
-- Headline (pre-registered rule): linear on all 153 single-shot features, LOGO piece: balanced acc 0.313 [0.227, 0.503], **perm. p = 0.23 (not reliably above chance)**; MAE 4.16 h vs 5.66 h RED baseline (CIs overlap). docs/08 states this honestly vs the 94 % target.
-- Core question answered: **BLUE is the most informative light, RED the least** (paired: BLUE > all-lights on 7/9 pieces; BLUE meat darkens while the reference stays flat). Exploratory (winner's curse): confirm on new sessions.
-- Session-relative (first-photo) features reach 0.42–0.51: the piece-to-piece offset is the main obstacle → grey card + more long same-setup sessions.
-- Next: **P7** deep features on the meat-only crops (or P8 if skipped). Carry-over: P3 refresh on 10 sessions; open questions 12–13.
+- S10 (2026-11-19) **re-planned the project CNN-first** (user decision): a pretrained CNN fine-tuned on our photos (PyTorch + timm) is now the main model track P7A–P7D; the P6 classical models are its baselines on the SAME leave-one-piece-out folds. Labels and the evaluation scheme are unchanged. Rationale and options: `docs/09_DEEP_LEARNING_PLAN.md`. No code changed; check.sh PASS (152 tests).
+- Pre-registered main model: composite triplet (R from RED, G from GREEN, B from BLUE crop), scale-normalised by meat area, interior patches, EfficientNet-B0 with the last 2 stages fine-tuned, ordinal level + equivalent-hours heads, inner-fold early stopping, 3 seeds. Ablations: single light vs composite; reference-pair (Siamese, needs the first photo, not single-shot).
+- Honest expectation: the ceiling is mostly the DATA (9 pieces, only exp4/exp5 reach `spoiled_risk`, and both use a different framing → shortcut risk; near-duplicate frames). P6 headline stays 0.313 [0.227, 0.503], p = 0.23.
+- Next: **P7A** (torch/timm, composite dataset, leak-free augmentation, `dl:` config). Carry-over: P3 refresh on 10 sessions; open questions 12–16.
 
 ## Phase checklist
 - [x] Planning & research (S01)
@@ -16,7 +15,11 @@
 - [x] P4 Features: T1 [x] T2 [x] T3 [x] T4 [x] (S07)
 - [x] P5 Labels & evaluation: T1 [x] T2 [x] T3 [x] T4 [x] T5 [x] (S08)
 - [x] P6 Classical models: T1 [x] T2 [x] T3 [x] T4 [x] T5 [x] (S09)
-- [ ] P7 Deep features (optional-but-recommended): T1 [ ] T2 [ ] T3 [ ] T4 [ ]
+- [x] S10 re-plan: CNN-first track (docs/09, phases P7A–P7D, P8 for a torch model)
+- [ ] P7A CNN setup & composite dataset: T1 [ ] T2 [ ] T3 [ ] T4 [ ] T5 [ ]
+- [ ] P7B Frozen embeddings: T1 [ ] T2 [ ] T3 [ ] T4 [ ]
+- [ ] P7C Fine-tuned CNN (main model): T1 [ ] T2 [ ] T3 [ ] T4 [ ] T5 [ ]
+- [ ] P7D Grad-CAM, CNN vs classical, final selection: T1 [ ] T2 [ ] T3 [ ] T4 [ ]
 - [ ] P8 Inference, notebook, README, report: T1 [ ] T2 [ ] T3 [ ] T4 [ ] T5 [ ] T6 [ ]
 - [ ] P9* API · [ ] P10* Web · [ ] P11* Android/voice
 
@@ -66,8 +69,20 @@
 
 12. (S09, for the user/mentor) Calibration trade-off: grouped sigmoid calibration makes the probabilities more honest (ECE 0.567 → 0.296) but lowers balanced accuracy (0.313 → 0.224). The S09 rule ("keep calibration if it lowers ECE") kept it in the saved model. Alternative: keep the uncalibrated class decision and report calibrated probabilities only. Which matters more for the app: honest confidence or the best level guess? (Decide before P8; one line in `models/select.py`/config.)
 13. (S09, for the mentor) BLUE-only models were the best single-shot models (exploratory, ~100 configurations tried). Proposal: pre-register a BLUE-only model now and test it ONLY on the new long same-setup sessions when they arrive; also add a grey/white card to the box (session-relative features reached 0.51).
+14. (S10, for the user) Your earlier test where "deep learning beat ML": were train and test photos split **randomly** (photos of the same piece on both sides)? If yes, that score was inflated by leakage (our S08 demo: 0.98 random vs 0.35 grouped). The CNN track compares CNN vs classical on the same leave-one-piece-out folds instead. Please also share what model/data that test used, so P7C can reproduce it under grouped CV.
+15. (S10, for the user/mentor) Use case for the reference-pair CNN: it needs a photo of the same piece when it was fresh (or later a grey card). It stays a separate, non-single-shot track next to the mentor first-frame baseline (master-plan decision 6). Should the app ALSO offer a "monitoring" mode (photograph at purchase, then again later)? If yes, the reference-pair model could become the headline for that mode.
+16. (S10, for the data team) The only `spoiled_risk` pieces (exp4, exp5) are also the only ones with the small framing. New long sessions should use ONE framing (docs/04 C9) so the CNN cannot learn the setup instead of the meat.
 
 ## Recent sessions (newest first; keep 5 in full)
+### S10: 2026-11-19: Re-plan, CNN-first track (Claude Opus)
+- Did:
+  - Start protocol: git clean at bb699ce, check.sh PASS (152). Web research on frozen embeddings vs partial/full fine-tuning, Siamese/reference-pair, multi-channel inputs, ordinal heads, food-freshness CNNs; data checks: LED crops are ~monochrome in their own channel (composite input is natural); `spoiled_risk` only in exp4/exp5 = the small-framing pieces (crops ~190 vs ~450 px).
+  - New `docs/09_DEEP_LEARNING_PLAN.md` (options, recommended model, 2 ablations, honesty section, sources). New phases `P7A_cnn_data`, `P7B_frozen_embeddings`, `P7C_finetune_cnn`, `P7D_cnn_explain_select` (old P7 removed); P8 and P9–P11 updated for a torch model (TorchScript/ONNX); master plan table + decisions 7–8.
+  - docs/03 (pipeline, structure `dl/`, tech stack), docs/04 (C9–C10 framing), docs/05 (§11 CNN headline, §11b leakage incl. CNN); skills `ml-evaluation` (CNN rules) and `long-running-commands` (CNN durations); open questions 14–16.
+- Files: docs/{03,04,05,09}, plan/{00_MASTER_PLAN,PROGRESS,LESSONS}.md, plan/phases/{P0,P7A–P7D,P8,P9_P11}, plan/sessions/S10, .claude/skills/{ml-evaluation,long-running-commands}, src/foodlens/{models/embeddings.py,vision/crop.py} (docstrings only).
+- Verified: check.sh PASS (152 tests) at start and end; no pipeline stage changed.
+- Next: P7A.T1–T5.
+
 ### S09: 2026-11-18/19: P6 Classical models, T1–T5 (Claude Opus)
 - Did:
   - T1 `models/classical.py` (impute → drop-const → scale → top-k → model; linear/RF/HGB/SVM; `GroupTunedModel` = nested inner GroupKFold, fixed defaults if < 3 groups; grids ≤ 12 in config `models`), `oof_predict` passes training groups only.
@@ -106,18 +121,8 @@
 - Files: src/foodlens/{eda/*,features/triplets.py,vision/{glints,texture}.py,cli.py,config.py}, configs/default.yaml, tests/test_eda.py, notebooks/src/03_eda.py, docs/07, reports/{figures,tables}, plan/*.
 - Verified: eda-stats --limit 20 then full (919 frames, ~1.5 min); eda full (~27 s); figures and samples inspected; check.sh PASS (109 tests).
 - Next: P4.T1–T4.
-### S05: 2026-11-18: P2 ROI & glints, T4–T5 (Claude Opus)
-- Did:
-  - `qc/scene_qc.py`: rolling-median robust z with MAD floors; mask geometry scored for RED only; log global mean and `sroi_mean` for all lights; `drift_px`; step detector → `scene_segment` + scene_steps.csv.
-  - `apply_qc` ROI rules (`E_NO_MEAT_FOUND`, `E_SCENE_CHANGE`, ROI blur) and `qc_pre_roi`; roi stage re-runs qc.
-  - `qc/qa_sheets.py` + `foodlens eda-sheets`; config `qc.scene_*` / `qc.step_*` / `qa`; skill updated.
-- Files: src/foodlens/qc/{scene_qc,qa_sheets,frame_qc}.py, vision/roi_batch.py, stages.py, cli.py, config.py, viz.py, configs/default.yaml, tests/test_{scene_qc,qa_sheets,qc,roi_stage,skeleton}.py, reports/figures/qa_roi_*.png, reports/tables/{scene_steps,qa_sheet_frames,qc_summary}.csv, plan/*.
-- Verified:
-  - Smoke runs then full roi (919 ok) and eda-sheets (75 panels).
-  - Acceptance met: 14:30:51 still MIXED; max loss 1/108 frames.
-  - 3 sheets inspected (D3A, D1A, D2B); check.sh PASS.
-- Next: P3.T1–T3.
 ## Older sessions (one sentence each)
+- S05 (2026-11-18, P2): scene-change / drift / step QC with rolling-median robust z and MAD floors, ROI-blur rules, idempotent QC rewrite and visual QA sheets.
 - S04 (2026-11-18, P2): ROI segmentation (multi-Otsu, holder exclusion), top-hat glint detection and glint matching, roi stage.
 - S03 (2026-11-18, P1): ingest + QC (manifest with EXIF/sequence/temperature, pixel light verification, DARK/MIXED/BLUR flags, inventory notebook).
 - S02 (2026-11-18, P0): uv project, package skeleton, typed errors, logging, validated pydantic config, CLI stubs, check.sh and 40 synthetic-image tests.

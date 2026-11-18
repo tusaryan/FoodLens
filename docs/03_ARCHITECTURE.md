@@ -5,10 +5,10 @@
 2. **Ingest**: read every photo once and record its time, camera settings, sample, piece and temperature in one table, the **manifest**. Original photos are never edited.
 3. **Quality check (QC)**: drop black frames (LED off), wrong-scene frames and blurred frames. Confirm the light colour from the pixels.
 4. **Find the meat (ROI)**: build an automatic mask of the chicken in each photo and save small cropped copies to a cache.
-5. **Measure features**: per light, the median brightness, colour ratios between lights, glint (bright spot) count/area/size, and texture.
+5. **Measure features / build CNN inputs**: (a) for the classical baselines, per light the median brightness, colour ratios between lights, glint (bright spot) count/area/size, and texture; (b) for the **main CNN model** (S10), the three meat-only crops of a triplet stacked into one colour image (R from the red photo, G from the green, B from the blue), resized to a common meat size and cut into patches inside the meat.
 6. **Build labels**: hours since start, temperature-adjusted hours, freshness class.
-7. **Train and evaluate fairly**: whole pieces are kept out for testing (grouped CV). Compare with baselines, report confidence intervals.
-8. **Predict**: a new R/G/B photo triplet goes through steps 3–5 and the saved model, which returns *age ± uncertainty, class, confidence*, or *"cannot judge"* if the input looks unlike the training data.
+7. **Train and evaluate fairly**: whole pieces are kept out for testing (grouped CV). The CNN (a pretrained network, top layers fine-tuned) and the classical models are scored on the **same** folds; compare with baselines, report confidence intervals. Grad-CAM maps show what the CNN looks at.
+8. **Predict**: a new R/G/B photo triplet goes through steps 3–5 and the saved model (normally the CNN), which returns *age ± uncertainty, class, confidence*, or *"cannot judge"* if the input looks unlike the training data.
 
 ## 2. ML pipeline diagram
 ```mermaid
@@ -22,15 +22,18 @@ flowchart TD
   E -->|mask fails| X
   E --> F[ROI crop cache<br/>data/interim/roi/*.png]
   F --> G[Feature extraction<br/>intensity, ratios, glints, texture]
-  F --> H[CNN embeddings<br/>pretrained, frozen]
+  F --> H[Meat-only crops<br/>foodlens crops]
+  H --> H2[Composite triplet R/G/B<br/>scale-normalised, interior patches<br/>leak-free augmentation]
   G --> I[Triplet assembly<br/>R+G+B within 3 min = 1 observation]
-  H --> I
+  H2 --> K
   L[Label builder<br/>hours, equiv-hours at 25°C, class] --> J
   I --> J[Feature table<br/>data/processed/features.parquet]
-  J --> K[Grouped CV<br/>leave-one-session-out]
-  K --> M[Models: baseline, logistic, RF, HistGB, SVM, CNN-head]
-  M --> N[Evaluation<br/>metrics + CI + permutation test<br/>+ leakage demo]
-  N --> O[Model registry<br/>models/<version>/model.joblib + model_card.md]
+  J --> K[Grouped CV<br/>leave-one-piece-out<br/>same folds for every model]
+  K --> M[Baselines + classical: logistic, RF, HistGB, SVM<br/>frozen-embedding heads]
+  K --> CNN[Main model: pretrained CNN<br/>EfficientNet-B0, last stages fine-tuned<br/>ordinal level + equiv. hours<br/>inner-fold early stopping]
+  CNN --> N
+  M --> N[Evaluation<br/>metrics + CI + permutation test<br/>+ paired per piece + leakage demo<br/>+ Grad-CAM]
+  N --> O[Model registry<br/>models/foodlens_cnn_v1 TorchScript/ONNX<br/>or classical joblib + model_card.md]
 ```
 
 ## 3. Inference flow (shared by notebook, CLI, API and app)
@@ -41,7 +44,7 @@ flowchart LR
   V --> Q[QC + light check]
   Q -->|fails| E1
   Q --> R[ROI + features]
-  R --> OOD{Out-of-distribution check<br/>feature z-scores, exposure}
+  R --> OOD{Out-of-distribution check<br/>Mahalanobis on CNN embedding / features}
   OOD -->|too different| AB[Abstain: 'cannot judge reliably'<br/>+ reason + capture tips]
   OOD -->|ok| P[Model predict<br/>age, class, probabilities]
   P --> C2[Calibrated confidence<br/>+ explanation: top features]
@@ -103,7 +106,8 @@ FoodLens/
 │   ├── features/  build.py  triplets.py  schema.py
 │   ├── labels/    labels.py  thermal_age.py
 │   ├── evaluation/ splits.py  metrics.py  stats.py  leakage_demo.py
-│   ├── models/    baselines.py  classical.py  embeddings.py  registry.py
+│   ├── models/    baselines.py  classical.py  calibration.py  select.py  registry.py
+│   ├── dl/        device.py  composite.py  dataset.py  augment.py  embed.py  model.py  losses.py  train.py  cv.py  saliency.py   # P7A–P7D
 │   ├── inference/ predictor.py  result_schema.py  ood.py
 │   └── cli.py                # `foodlens ingest|qc|roi|features|train|evaluate|predict`
 ├── notebooks/
@@ -134,11 +138,11 @@ FoodLens/
 | Env | **uv** + `.venv` in the repo, Python 3.12 | Fast; hard-links from the uv cache, so no duplicate downloads; delete `.venv` to clean up |
 | Images | Pillow, OpenCV-headless, scikit-image | Standard and deterministic |
 | Data | pandas, pyarrow | Parquet manifest/features |
-| ML | scikit-learn, (optional) LightGBM | Small data, so classical models plus grouped CV |
-| Deep features | PyTorch (MPS) + timm `mobilenetv3_large_100` / `efficientnet_b0` | Small and fast; frozen embeddings suit 5 sessions |
+| Main model (S10) | PyTorch (MPS) + timm `efficientnet_b0`, last stages fine-tuned; frozen DINOv2 / ConvNeXt / EfficientNet / MobileNetV3 embeddings as baselines | Computer-vision task; pretrained weights need few photos; small and fast on the M1; exports to ONNX/TFLite. Rationale: `docs/09_DEEP_LEARNING_PLAN.md` |
+| Classical baselines | scikit-learn | Interpretable baselines on hand-crafted features, same grouped CV |
 | Stats | scipy, statsmodels | CIs, permutation tests, mixed-effects trend tests |
 | Viz | matplotlib, seaborn | Report figures |
 | Notebooks | jupytext → `.ipynb`, nbclient to execute | Agents edit `.py`; the notebook is generated and runs top to bottom |
 | Config | pydantic v2 + YAML | One validated config |
 | Quality | ruff, pytest, mypy (lenient) | `scripts/check.sh` |
-| Export | joblib (+ ONNX for the CNN head if the app needs it) | Same model in notebook, API and app |
+| Export | TorchScript + ONNX (CNN), joblib (classical) | Same model in notebook, API and app |

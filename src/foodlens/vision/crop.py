@@ -4,7 +4,7 @@ Every feature since P2 is already computed only on pixels inside the meat masks,
 never entered a feature. This module makes that explicit and visible as standard preprocessing:
 each frame is cut to the bounding box of its triplet's FULL meat mask (lit + shadowed side, from
 ``vision.triplet_roi``) plus ``qa.crop_pad_px``, and every pixel outside the mask is set to 0. The
-crops feed the deep-feature phase (P7) and the visual review; ``crop_index.parquet`` lists them.
+crops feed the CNN track (P7A-P7D) and the visual review; ``crop_index.parquet`` lists them.
 """
 
 from __future__ import annotations

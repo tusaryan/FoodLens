@@ -96,7 +96,7 @@ Shuffling a feature on the held-out piece and measuring the loss:
 | Held-out piece | MAE equiv. h | Balanced acc. | Why |
 |---|---|---|---|
 | exp4_D1A (25 h overnight) | 6.42 | 0.25 | when it is held out only ONE other piece (exp5) shows `spoiled_risk` |
-| exp2_D4A | 6.38 | 0.33 | not yet explained (largest age error among short sessions; check its photos in P7) |
+| exp2_D4A | 6.38 | 0.33 | not yet explained (largest age error among short sessions; check its photos in the P7A composite review) |
 | exp1_D1A | 4.63 | 0.75 | only 19 complete triplets (blue LED off until 13:34) |
 | exp1_D1B, exp2_D2B | 0.87, 1.58 | ≈ 0.52 | short sessions close to the training average |
 The two overnight pieces are the only source of the `quality_loss` / `spoiled_risk` levels, so

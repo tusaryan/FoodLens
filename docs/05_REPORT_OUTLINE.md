@@ -14,8 +14,9 @@ Target: 25–40 pages, IEEE-style references. Written in Phase 8 from artefacts 
 | 8 | EDA | Trends per light, start/mid/end, glint statistics, droplet merge/split/evaporation | **F5** time series per session × light; **F6** start/mid/end grid; **F7** glint size histograms over time; **F8** correlation heat-map (P3) |
 | 9 | Features & labels | Feature list with physical meaning; labels; thermal age | **T5** feature dictionary (`features/schema.py` export, P4); **F9** temperature curves (P1) |
 | 10 | Evaluation protocol | Grouped CV, baselines, CI, permutation test, leakage demo | **F10** split diagram; **T6** random vs grouped (P5) |
-| 11 | Models & results | Model comparison, light ablation (R/G/B/all), calibration | **T7** model table with CI; **F11** confusion matrix; **F12** predicted vs true age; **F13** reliability curve; **F14** feature importance (P6–P7) |
-| 12 | Discussion | What works, failure cases, why spot count alone fails, limits (n pieces) | **F15** failure gallery |
+| 11 | Models & results | **Main model: fine-tuned CNN** (composite R/G/B triplet, EfficientNet-B0) vs frozen embeddings vs classical baselines **on the same leave-one-piece-out folds**; light ablation (R/G/B/all) for CNN and classical; reference-pair (needs a first photo) as a separate track; calibration | **T7** model table with CI and permutation p (`cnn_vs_classical.csv`, P7D); **F11** confusion matrix; **F12** predicted vs true age; **F13** reliability curve; **F14** feature importance (P6); **F16** Grad-CAM on held-out pieces; **F17** paired per-piece CNN vs classical (P7B–P7D) |
+| 11b | Why grouped evaluation | Random-split vs grouped for classical AND CNN (≈ 0.98 vs grouped): why a "deep learning beats ML" result on a random split is not evidence | **T6b** leakage demo incl. CNN (P7D) |
+| 12 | Discussion | What works, failure cases, why spot count alone fails, what the CNN looks at (glints / texture / colour / edges), setup shortcut checks (framing), limits (9 pieces, 2 spoiled) | **F15** failure gallery |
 | 13 | Deployment (if done) | API/app architecture, OOD abstain | Diagrams from `03_ARCHITECTURE.md` |
 | 14 | Conclusion & future work | More pieces, grey card, RAW, TVC lab counts for ground truth | — |
 | A | Appendix | Config, reproducibility steps, model card | — |

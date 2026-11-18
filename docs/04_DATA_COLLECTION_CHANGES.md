@@ -31,6 +31,8 @@ The team's scripts in `data-collection-code/` are **left unchanged**. Corrected 
 6. Keep the camera and box fixed. Mark the meat position with tape.
 7. **More independent pieces matter more than more hours per piece.** 10 pieces × 3 h is far more useful for ML than 2 pieces × 15 h.
 8. Save one photo **with all LEDs off** at the start (dark frame) and one with a **plain white card** under each LED (flat field).
+9. **(S10, for the CNN)** Keep the **framing** (camera height, zoom, meat position) identical across sessions. Today the only two pieces that reach `spoiled_risk` (EXP-4, EXP-5) were filmed with a smaller framing than EXP-2, so a CNN could learn "small picture = old meat". At least **3 long (≥ 16 h) sessions with the same setup**, and ideally short sessions with that setup too, so every freshness level appears under one framing.
+10. **(S10)** Note any time the piece is touched, moved or turned over (exp3_D1A was excluded for this).
 
 ## D. Open questions for the team (answers go into `configs/samples.yaml`)
 1. What do `D1`, `D2`, `D3` mean: storage day since purchase? And `A`/`B`: different pieces or the same piece?

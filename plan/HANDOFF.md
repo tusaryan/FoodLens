@@ -29,5 +29,5 @@ Follow the session protocol in AGENTS.md: run scripts/check.sh first, state a 5-
 ```
 
 ## Tips for the user
-- Use a strong model (Claude Opus/Sonnet, GPT-5-class) for P2, P5, P6 (the science-heavy phases). Faster models are fine for P0, P4 and the docs work in P8.
+- Use a strong model (Claude Opus/Sonnet, GPT-5-class) for P2, P5, P6, P7A, P7C, P7D (the science-heavy phases; P7C runs for hours, keep the machine awake). Faster models are fine for P0, P4 and the docs work in P8.
 - If a session ends abruptly (credits/context), start the next one with the same prompt plus: "Previous session ended abruptly; run `git status`/`git diff --stat`, reconcile with PROGRESS.md, then continue."

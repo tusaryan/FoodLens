@@ -6,7 +6,7 @@ Design reference: `docs/06_APP_DESIGN_OPTIONAL.md`. Architecture: `docs/03_ARCHI
 - T1 `POST /v1/predict` (multipart 1–3 images + optional light tags/temp) → `PredictionResult` JSON (the same schema as P8). `GET /v1/health` (model version, config hash). `GET /v1/model-card`.
 - T2 `POST /v1/captures` and `GET /v1/captures/{session}` storing capture sessions in SQLite + the images on disk using the `experiment/`-style layout, so new data flows straight into P1 ingest.
 - T3 Errors: a FoodLensError → HTTP 422 with `{code, message, hint, request_id}`; unexpected → 500 with request_id, logged. Never a 200 with an empty result.
-- T4 Tests with `httpx`/TestClient; latency budget < 2 s per triplet on M1.
+- T4 Tests with `httpx`/TestClient; latency budget < 2 s per triplet on M1 (CNN: TorchScript on CPU/MPS, load the model once at startup).
 - T5 `apps/api/README.md`, run with `uv run uvicorn …`.
 
 ## P10: Web app (`apps/web/`, 2–3 sessions)
@@ -19,4 +19,5 @@ Design reference: `docs/06_APP_DESIGN_OPTIONAL.md`. Architecture: `docs/03_ARCHI
 - Kotlin + Compose, minSdk 24, targetSdk = current Play requirement. CameraX with Camera2 interop: query `REQUEST_AVAILABLE_CAPABILITIES_MANUAL_SENSOR`; if supported, expose ISO/exposure/WB/focus locks; else show "manual control not supported on this device" (never silently use auto).
 - Interval capture with a configurable light schedule (R/G/B order, period), on-screen light cue, EXIF preserved, upload to `/v1/captures` or save locally for later sync. Foreground service + wake lock for multi-hour sessions; battery/thermal warnings.
 - Voice: push-to-talk and live mode; STT/TTS via the backend roles (Hindi/English/Hinglish); live orb animation; a task list showing the agent steps.
+- On-device inference (optional): the ONNX export from P7D.T4 → ONNX Runtime Mobile or TFLite; the same scale normalisation + patch grid must be reimplemented and checked against the Python output on saved triplets.
 - iOS/KMP only if time remains.
