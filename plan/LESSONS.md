@@ -39,3 +39,14 @@
 - 2026-11-18: The session ROI covers only 75–90 % of the meat-like region. The dim, shadowed side (RED median 11–18) falls in the lowest multi-Otsu class. This is by design ("well-lit meat"), pending user sign-off.
 - 2026-11-18: The glint threshold is the abs_min floor (40) in 75/75 QA panels. On dim BLUE frames the top-hat rarely reaches 40, so the counts drop to 0 while specks remain visible: glint count is confounded with illumination level.
 - 2026-11-18: Photo contact sheets at 300 dpi are 3.5 MB each and git-tracked. Use `qa.dpi` = 150 and no SVG.
+- 2026-11-18: Two agent sessions (an original and its fork) edited the same EDA files at once and overwrote each other's code and outputs. Only one session may write in this folder; check `ls -lT` times / unexpected diffs before continuing.
+- 2026-11-18: Do not inspect the same fixed frames every session. `foodlens eda-sample --tag S<NN>` picks new random + outlier + special frames and logs them; scripts still cover all frames.
+- 2026-11-18: Robust z of a smooth series (GLCM contrast MAD ≈ 0.2 %) flags ordinary frames at z > 100. Use relative residuals with a MAD floor (`eda.outlier_floor` = 5 %) and bound the divisor when the rolling median is 0.
+- 2026-11-18: Meat brightness falls in 5/5 sessions under all lights, while the lit tray/holder (`ref_mean`) stays flat: the trend is the meat, not LED warm-up. Always keep a non-meat reference when claiming a brightness trend.
+- 2026-11-18: Absolute meat brightness differs ~2× between pieces (RED start 38–75) but changes only 2–6 %/h within one: single-shot age needs ratio / normalised features.
+- 2026-11-18: The fixed glint floor (abs_min 40) makes counts follow brightness (bright bands over-counted, dim lights under-counted). The relative rule (top-hat ≥ 0.75 × local opening) gives a consistent RED decline (5/5 sessions vs 2/5).
+- 2026-11-18: Relative glints produce false hits on the ROI edge next to the bright holder under BLUE (D2B). Exclude an edge band in P4.
+- 2026-11-18: The D2A step is +33/+59/+87 % R/G/B inside the ROI (larger than the global-mean +28/+45/+65 %). Meat ÷ surroundings cancels it under GREEN/BLUE but not fully under RED.
+- 2026-11-18: The RED-defined shadow is far less dark under BLUE: the LEDs light the meat from different angles, so "shadow" is light-specific.
+- 2026-11-18: Executed notebooks that embed full-resolution PNGs exceed the 5 MB limit (03 was 7.7 MB). Embed thumbnails (`show()` downscales to ~1100 px).
+- 2026-11-18: Adding a key to the `vision` config section changes the ROI cache hash (roi, vision); the next `foodlens roi` recomputes all masks (~1.5 min). roi_index keeps pointing at the old folder until then, which is fine.

@@ -13,7 +13,7 @@ Each model is an sklearn `Pipeline` (impute median → drop near-constant → sc
 Small, fixed hyper-parameter grids (≤ 12 combos) tuned with nested inner grouped CV. **Never on the test fold.**
 
 ## P6.T2: Experiments (`foodlens train --experiment <name>`; configs in `configs/experiments/*.yaml`)
-1. `feature_set ∈ {RED, GREEN, BLUE, RG, RGB_all}` × model → the light-ablation table.
+1. **Light comparison (the core question of the project, user S06):** `feature_set ∈ {RED, GREEN, BLUE, RG, RB, GB, RGB_all (+ cross-light ratios)}` × model → `reports/tables/light_ablation.csv` and a figure. Same folds, same targets, same feature recipe per light, so the only difference is the light. Report each set's grouped metric with its group-bootstrap CI and a **paired** comparison per held-out session (which light wins in how many of the 5 sessions). Start from the P3 evidence: `reports/tables/eda_light_comparison.csv`, `feature_signal_ranking.csv` (F8).
 2. Feature groups: intensity only / + glint / + texture / + ratios → what each group adds.
 3. Targets: `hours_since_start` (regression), `freshness_class` (classification), `storage_day` (if available).
 4. Single-shot (absolute features) vs session-normalised (relative) features → shows why calibration (grey card) matters.

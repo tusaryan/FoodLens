@@ -75,12 +75,17 @@ glint:                       # glints = specular reflections of surface moisture
   match_px: 6.0              # centroid distance for matching glints between frames (px, EDA only)
   merge_area_ratio: 1.5      # merge/split: merged glint area >= this x the largest part (EDA only)
   sat_level: 250             # pixel value (0-255) counted as saturated inside a glint (JPEG rarely hits 255)
+  rel_k: 0.75                # relative glint rule (EDA variant, open question 7): top-hat >= rel_k x local surface
+                             # level (opening), i.e. >= 1.75 x the surrounding meat. Chosen (S06) so the RED median count
+                             # on 15 QA frames (79) is close to the abs_min rule (100); no time/labels used
+  rel_floor: 6.0             # noise floor of the relative rule (0-255): JPEG/sensor noise at dim BLUE levels
 
 vision:
   work_long_side: 1024       # long side (px) for ROI and colour features
   glint_long_side: 2048      # long side (px) for glint statistics
   glcm_distances: [1, 3]     # GLCM pixel distances
   glcm_levels: 32            # GLCM grey levels
+  glcm_clip_pct: [1.0, 99.0] # GLCM quantisation range = these ROI percentiles (brightness-independent texture)
   lbp_p: 8                   # LBP neighbours
   lbp_r: 1                   # LBP radius (px)
 
@@ -89,6 +94,28 @@ qa:                          # visual QA contact sheets (`foodlens eda-sheets`, 
   crop_margin: 0.25          # crop = session-ROI bbox + this fraction of its size per side (shows holder/tray)
   marker_px: 9.0             # radius (px at glint resolution) of the cyan glint-centroid circles
   dpi: 150                   # PNG dpi of the sheets (git-tracked; 300 dpi gave 3.5 MB per sheet)
+
+eda:                         # exploratory analysis (P3: `foodlens eda-stats`, `foodlens eda`)
+  shadow_min_level: 8.0      # smoothed RED session-median level (0-255) above which pixels joined to the lit ROI are
+                             # (shadowed) meat. S06 probe: box background p50 0.1-1.0, shadowed meat 8-20
+  shadow_open_r: 12          # opening disk radius (px, work resolution) that cuts thin lit tray/glass strips (S06)
+  positions: [0.0, 0.5, 1.0] # start / middle / end = fractions of each session x light's usable frames (F6)
+  stretch_pct: [1.0, 99.5]   # ONE contrast stretch for the 3 frames = these percentiles of their pooled ROI pixels
+  diff_pct: 99.0             # colour range of the end - start image = +/- this percentile of |diff| in the ROI
+  rel_base_n: 3              # relative-to-first = value / median of the first n frames (the mentor's first = 1.0;
+                             # n = 3 so one noisy first frame does not rescale the whole series)
+  rolling_window: 5          # centred rolling median (frames) in the time series (F5)
+  min_frames: 8              # fewer usable frames in a session x light -> no trend statistic (NaN)
+  alpha: 0.05                # significance level used for "clear trend" labels
+  window_frac: 0.1           # glint size histograms use the frames in the first / middle / last 10 % of the time
+  promising_min_sessions: 4  # P3.T5: "promising" = same trend sign in >= this many sessions
+  sample_outliers: 8         # visual review sample (`foodlens eda-sample`): this many trend outliers, plus one
+                             # random frame per session x time third and the W_BLUR / after-step frames
+  outlier_floor: 0.05        # MAD floor (fraction) of the relative residual in the outlier score (S06: raw MADs
+                             # of smooth series are ~0.2 %, which made ordinary frames look like z > 100)
+  ref_gap_px: 20             # reference region (lit tray/holder/walls, S06 LED-drift control) starts this many px
+                             # (work resolution) outside the full-meat mask (meat drifts <= ~23 px, D2B)
+  ref_min_level: 12.0        # ... and is brighter than this (0-255) in the light's session-median image
 
 triplet:
   max_span_s: 200            # max time span (s) of consecutive R, G, B frames forming one triplet

@@ -1,0 +1,5 @@
+light,n_features,n_promising,n_all_sessions_significant,top5_mean_abs_rho,top5_features,roi_mean_level,roi_mean_trend_pct_h,roi_mean_noise_pct,roi_mean_snr_per_h
+RED,39,35,20,0.9526699663772593,"roi_p75, full_mean, roi_mean, roi_p90, roi_median",41.6796989440918,3.3156968638278603,0.26011559297194903,12.747013071936163
+GREEN,39,31,16,0.9805248441278234,"roi_mean, full_mean, roi_p75, roi_median, glcm_homogeneity",29.41826820373535,4.959657308806924,0.16518608894402212,30.02466697112516
+BLUE,39,29,14,0.9622051839774457,"roi_mean_rel_ref, glcm_correlation, full_mean, roi_mean, shd_mean",16.266291618347168,8.504101108413833,0.44591253543372533,19.071231312531182
+TRIPLET,6,5,1,0.6993358442981858,"roi_mean_ratio_GB, roi_mean_ratio_RB, roi_mean_ratio_RG, roi_median_ratio_GB, roi_median_ratio_RG",,,,

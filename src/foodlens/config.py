@@ -85,6 +85,8 @@ class GlintConfig(_Section):
     match_px: float = Field(gt=0)
     merge_area_ratio: float = Field(gt=1)
     sat_level: int = Field(ge=1, le=255)
+    rel_k: float = Field(gt=0)
+    rel_floor: float = Field(ge=0, le=255)
 
 
 class VisionConfig(_Section):
@@ -92,6 +94,7 @@ class VisionConfig(_Section):
     glint_long_side: int = Field(gt=0)
     glcm_distances: list[int] = Field(min_length=1)
     glcm_levels: int = Field(ge=2, le=256)
+    glcm_clip_pct: list[float] = Field(min_length=2, max_length=2)
     lbp_p: int = Field(gt=0)
     lbp_r: int = Field(gt=0)
 
@@ -118,6 +121,24 @@ class QAConfig(_Section):
     crop_margin: float = Field(ge=0)
     marker_px: float = Field(gt=0)
     dpi: int = Field(ge=50)
+
+
+class EDAConfig(_Section):
+    shadow_min_level: float = Field(ge=0, le=255)
+    shadow_open_r: int = Field(ge=0)
+    positions: list[float] = Field(min_length=2)
+    stretch_pct: list[float] = Field(min_length=2, max_length=2)
+    diff_pct: float = Field(gt=0, le=100)
+    rel_base_n: int = Field(ge=1)
+    rolling_window: int = Field(ge=1)
+    min_frames: int = Field(ge=3)
+    alpha: float = Field(gt=0, lt=1)
+    window_frac: float = Field(gt=0, le=0.5)
+    promising_min_sessions: int = Field(ge=1)
+    sample_outliers: int = Field(ge=0)
+    outlier_floor: float = Field(gt=0)
+    ref_gap_px: int = Field(ge=0)
+    ref_min_level: float = Field(ge=0, le=255)
 
 
 class TripletConfig(_Section):
@@ -176,6 +197,7 @@ class Config(_Section):
     glint: GlintConfig
     vision: VisionConfig
     qa: QAConfig
+    eda: EDAConfig
     triplet: TripletConfig
     cv: CVConfig
     labels: LabelsConfig

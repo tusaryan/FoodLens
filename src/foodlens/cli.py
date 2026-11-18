@@ -77,6 +77,21 @@ def roi(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: bo
     stage_done("roi", len(df))
 
 
+@app.command("eda-stats")
+def eda_stats(
+    config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: bool = ForceOpt
+):
+    """Per-frame ROI statistics of every usable frame -> frame_stats.parquet (P3.T1).
+
+    Always recomputed (``--force`` has no effect); ``--limit`` = first N usable frames.
+    """
+    from foodlens.eda.run import run_frame_stats
+
+    df = run_frame_stats(load_config(config), limit)
+    typer.echo(f"frame_stats: {len(df)} frames, {df['session_id'].nunique()} sessions")
+    stage_done("eda-stats", len(df))
+
+
 @app.command()
 def features(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: bool = ForceOpt):
     """Compute per-frame and per-triplet features (P4)."""
@@ -122,6 +137,32 @@ def eda_sheets(
     typer.echo(f"qa sheets: {df['session_id'].nunique()} sessions, {len(df)} panels")
     typer.echo(f"glint threshold at glint.abs_min floor: {floor}/{len(df)} panels")
     stage_done("eda-sheets", len(df))
+
+
+@app.command()
+def eda(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: bool = ForceOpt):
+    """EDA tables and figures F5-F8 from frame_stats.parquet (P3.T2-T5).
+
+    Always recomputed; ``--limit`` / ``--force`` have no effect (it reads the existing table).
+    """
+    from foodlens.eda.run import run_eda
+
+    counts = run_eda(load_config(config))
+    typer.echo(f"eda tables: {counts}")
+    stage_done("eda", sum(counts.values()))
+
+
+@app.command("eda-sample")
+def eda_sample(
+    config: Path | None = ConfigOpt,
+    tag: str = typer.Option(..., "--tag", help="Session tag for the review log, e.g. S06."),
+):
+    """Render a NEW varied frame sample for visual review (random + outliers + special frames)."""
+    from foodlens.eda.run import run_visual_sample
+
+    df = run_visual_sample(load_config(config), tag)
+    typer.echo(df["reason"].str.split(":").str[0].str.split(" z=").str[0].value_counts().to_dict())
+    stage_done("eda-sample", len(df))
 
 
 if __name__ == "__main__":

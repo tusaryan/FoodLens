@@ -13,6 +13,12 @@ verified light's channel at glint resolution (``vision.glint_long_side``):
 2. Threshold = median + ``glint.k`` x MAD of the top-hat values inside the ROI, and at least
    ``glint.abs_min`` (0-255).
 3. 8-connected components inside the ROI with area >= ``glint.min_area_px``.
+
+``detect_glints_relative`` (S06, open question 7) keeps steps 1 and 3 but replaces the absolute
+floor by a rule relative to the local surface brightness (the opening): a pixel is a glint if its
+top-hat is above the noise threshold (median + k x MAD, at least ``glint.rel_floor``) AND at least
+``glint.rel_k`` x the local surface level. Specular and diffuse light both scale with the LED
+power, so this ratio does not depend on how bright the light is; the absolute floor does.
 """
 
 from __future__ import annotations
@@ -84,8 +90,10 @@ def _props(labels: np.ndarray, channel: np.ndarray, cfg: GlintConfig) -> pd.Data
     return pd.DataFrame(rows, columns=PROP_COLS)
 
 
-def detect_glints(channel: np.ndarray, roi_mask: np.ndarray, cfg: GlintConfig) -> GlintResult:
-    """Glints of one uint8 channel (H, W) inside the bool ``roi_mask`` (same shape)."""
+def _prepare(
+    channel: np.ndarray, roi_mask: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """(uint8 channel, bool ROI, channel with outside-ROI pixels set to the ROI median)."""
     if channel.shape != roi_mask.shape:
         raise ValueError(f"channel {channel.shape} and roi_mask {roi_mask.shape} differ")
     roi = roi_mask.astype(bool)
@@ -93,10 +101,37 @@ def detect_glints(channel: np.ndarray, roi_mask: np.ndarray, cfg: GlintConfig) -
         raise ValueError("roi_mask is empty")
     ch = channel.astype(np.uint8)
     # Outside the ROI use the ROI median, so the meat/background border is not a top-hat peak.
-    filled = np.where(roi, ch, np.uint8(np.median(ch[roi])))
+    return ch, roi, np.where(roi, ch, np.uint8(np.median(ch[roi])))
+
+
+def detect_glints(channel: np.ndarray, roi_mask: np.ndarray, cfg: GlintConfig) -> GlintResult:
+    """Glints of one uint8 channel (H, W) inside the bool ``roi_mask`` (same shape)."""
+    ch, roi, filled = _prepare(channel, roi_mask)
     th = white_tophat(filled, cfg.tophat_r)
     thr = glint_threshold(th[roi].astype(np.float32), cfg)
-    binary = (th > thr) & roi
+    return _components((th > thr) & roi, ch, thr, cfg)
+
+
+def detect_glints_relative(
+    channel: np.ndarray, roi_mask: np.ndarray, cfg: GlintConfig
+) -> GlintResult:
+    """Illumination-relative glints: top-hat > max(median + k x MAD, ``rel_floor``) and
+    top-hat >= ``rel_k`` x the local surface level (the opening, 0-255).
+
+    ``threshold`` in the result is the scalar noise threshold (0-255).
+    """
+    ch, roi, filled = _prepare(channel, roi_mask)
+    th = white_tophat(filled, cfg.tophat_r)
+    surface = filled - th  # the opening: local surface brightness without the peaks
+    vals = th[roi].astype(np.float32)
+    med = float(np.median(vals))
+    noise = max(med + cfg.k * float(np.median(np.abs(vals - med))), float(cfg.rel_floor))
+    binary = (th > noise) & (th.astype(np.float32) >= cfg.rel_k * surface) & roi
+    return _components(binary, ch, noise, cfg)
+
+
+def _components(binary: np.ndarray, ch: np.ndarray, thr: float, cfg: GlintConfig) -> GlintResult:
+    """8-connected components of ``binary`` with area >= ``min_area_px`` and their properties."""
     labels = measure.label(binary, connectivity=2)
     if labels.max():
         sizes = np.bincount(labels.ravel())

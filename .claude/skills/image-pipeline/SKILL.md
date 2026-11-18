@@ -54,3 +54,11 @@ description: Conventions and exact algorithms for FoodLens image handling - mani
 
 ## Banned as model features
 Timestamp, file index, session id, orientation, image width/height, ROI centroid/bbox position.
+
+## EDA measurements (P3, S06: `foodlens eda-stats`, `foodlens eda`, `foodlens eda-sample`)
+- `eda/frame_stats.py` (P4 reuses it): per usable frame, at glint resolution on the verified channel inside the SESSION ROI: `roi_*` intensity stats with glint pixels (either rule) excluded, `glint_*` (abs rule), `rglint_*` (relative rule), `glcm_*`, `shd_*` / `full_*` (shadow zone), `ref_mean` + `roi_mean_rel_ref`.
+- Relative glint rule (`detect_glints_relative`): top-hat > max(median + k·MAD, `glint.rel_floor`) AND top-hat ≥ `glint.rel_k` × the opening (local surface). Light-level independent; RED count falls in 5/5 sessions vs 2/5 for the abs rule. Known artefact: false glints on the ROI edge next to the bright holder under BLUE (drop an edge band in P4).
+- GLCM: ROI quantised to `vision.glcm_levels` over its own p1–p99 (`vision.glcm_clip_pct`), outside = level 0 and dropped from the matrix: brightness-independent texture.
+- Zones (`eda/meat_zones.py`): full meat = smoothed RED session median > `eda.shadow_min_level`, opened by `eda.shadow_open_r`, touching the lit ROI, holder removed, eroded; shadow = full − lit. Reference = lit non-meat (tray/holder/walls) ≥ `eda.ref_gap_px` from the meat and > `eda.ref_min_level` per light: the LED/camera-drift control.
+- Scene steps: brightness features are divided by the per-segment gain (`eda.trends.step_correct`); glint/texture are not.
+- Visual review: never re-inspect the same fixed frames. `foodlens eda-sample --tag S<NN>` renders random (per session × time third) + trend-outlier + special (W_BLUR, after-step) frames not yet in `tables/visual_review_log.csv` / `qa_sheet_frames.csv`.

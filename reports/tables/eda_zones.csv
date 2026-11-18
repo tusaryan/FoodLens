@@ -1,0 +1,6 @@
+session_id,lit_px,shadow_px,shadow_frac_of_meat,full_mask_path
+exp1_D1A,97222,20324,0.17290252326748676,data/interim/eda/76aeee4e17/zones/exp1_D1A.png
+exp1_D1B,85987,22227,0.2053985621084148,data/interim/eda/76aeee4e17/zones/exp1_D1B.png
+exp2_D2A,125887,24488,0.1628462177888612,data/interim/eda/76aeee4e17/zones/exp2_D2A.png
+exp2_D2B,155328,28325,0.15423107708559075,data/interim/eda/76aeee4e17/zones/exp2_D2B.png
+exp2_D3A,186692,6726,0.0347744263718992,data/interim/eda/76aeee4e17/zones/exp2_D3A.png

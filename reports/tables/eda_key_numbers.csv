@@ -1,0 +1,27 @@
+metric,light,value,note
+frames,all,919.0,usable frames
+sessions,all,5.0,
+mixedlm_roi_median_pct_per_h,BLUE,-5.3848312669933645,95% CI -5.9 to -4.9
+mixedlm_roi_median_pct_per_h,GREEN,-4.2936674064472715,95% CI -4.5 to -4.1
+mixedlm_roi_median_pct_per_h,RED,-4.052548215148724,95% CI -4.3 to -3.8
+start_roi_mean_min,BLUE,13.23989200592041,between-session spread of level
+start_roi_mean_max,BLUE,32.387149810791016,
+roi_mean_slope_pct_h_median,BLUE,-8.504101108413833,range -10.5 to -0.9 over sessions
+ref_mean_slope_pct_h_median,BLUE,0.8876727998728127,range -1.5 to 21.1 over sessions
+start_roi_mean_min,GREEN,26.28705406188965,between-session spread of level
+start_roi_mean_max,GREEN,62.418399810791016,
+roi_mean_slope_pct_h_median,GREEN,-4.959657308806924,range -8.2 to -2.3 over sessions
+ref_mean_slope_pct_h_median,GREEN,2.433600604714322,range 0.1 to 26.3 over sessions
+start_roi_mean_min,RED,38.37930679321289,between-session spread of level
+start_roi_mean_max,RED,74.60460662841797,
+roi_mean_slope_pct_h_median,RED,-3.3156968638278603,range -5.6 to -1.8 over sessions
+ref_mean_slope_pct_h_median,RED,1.496555257927991,range 0.3 to 21.8 over sessions
+promising_features,all,100.0,of 123
+glint_size_shrinks_abs,all,13.0,of 15 session x light
+glint_count_falls_abs,BLUE,3.0,of 5 sessions
+glint_count_falls_abs,GREEN,2.0,of 5 sessions
+glint_count_falls_abs,RED,2.0,of 5 sessions
+glint_size_shrinks_rel,all,15.0,of 15 session x light
+glint_count_falls_rel,BLUE,2.0,of 5 sessions
+glint_count_falls_rel,GREEN,1.0,of 5 sessions
+glint_count_falls_rel,RED,5.0,of 5 sessions
