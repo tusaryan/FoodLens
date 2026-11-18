@@ -1,0 +1,44 @@
+{
+  "ci": {
+    "mae": [
+      5.558493544881506,
+      8.336544697434064
+    ],
+    "rmse": [
+      6.3781179169237925,
+      9.40375174051715
+    ],
+    "spearman": [
+      -0.6904933973866537,
+      0.16720263199698104
+    ]
+  },
+  "config_hash": "45121082ad",
+  "cv_scheme": "LOGO_experiment",
+  "feature_set": [
+    "roi_median__RED"
+  ],
+  "git_commit": "49fada54da741e3c8e9e7b21d5ba6d362f198f6c",
+  "group_col": "experiment",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "mae": 7.327184599782245,
+    "per_group_mae": {
+      "EXP-1": 7.097888572246289,
+      "EXP-2": 8.463079378774166,
+      "EXP-4": 7.995675759946441,
+      "EXP-5": 5.312529601115233
+    },
+    "r2": -0.4855278593339929,
+    "rmse": 8.345327784014254,
+    "spearman": -0.6333391573425193
+  },
+  "model": "baseline_mean",
+  "n_groups": 4,
+  "n_samples": 1258,
+  "notes": "training mean / majority class",
+  "permutation": {},
+  "run_id": "baseline_mean__equiv_hours_25C__LOGO_experiment",
+  "target": "equiv_hours_25C",
+  "task": "regression"
+}

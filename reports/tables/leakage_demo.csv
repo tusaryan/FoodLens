@@ -1,0 +1,5 @@
+split,task,target,metric,value,ci_lo,ci_hi,n_groups,n_samples,n_features
+grouped_LOGO,regression,equiv_hours_25C,mae,4.352463564398377,1.5961262687785132,6.5102908970587015,9,1258,153
+LEAKY_random_KFold,regression,equiv_hours_25C,mae,0.16651275611177446,0.1494702265787537,0.2011840341278849,9,1258,153
+grouped_LOGO,classification,freshness_class,balanced_accuracy,0.3491320020585497,0.21215287547804496,0.5336736187443254,9,1258,153
+LEAKY_random_KFold,classification,freshness_class,balanced_accuracy,0.9787112656499038,0.961793887628965,0.9862456635028729,9,1258,153

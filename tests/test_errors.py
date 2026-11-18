@@ -54,6 +54,8 @@ def test_all_codes_listed():
         "E_NO_SESSION",
         "E_MIXED_LIGHT",
         "E_DUPLICATE",
+        "E_LABEL",
+        "E_SPLIT",
     }
     assert expected == errors.ALL_CODES
     for code in expected:

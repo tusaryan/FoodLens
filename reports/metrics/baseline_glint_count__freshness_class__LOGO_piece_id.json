@@ -1,0 +1,94 @@
+{
+  "ci": {
+    "balanced_accuracy": [
+      0.03646932454973108,
+      0.32552763311200456
+    ],
+    "macro_f1": [
+      0.01857901352773861,
+      0.15291222313371616
+    ]
+  },
+  "config_hash": "45121082ad",
+  "cv_scheme": "LOGO_piece_id",
+  "feature_set": [
+    "glintabs_density__RED"
+  ],
+  "git_commit": "49fada54da741e3c8e9e7b21d5ba6d362f198f6c",
+  "group_col": "piece_id",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "balanced_accuracy": 0.09944619545779686,
+    "brier": 0.9695543258082557,
+    "classes": [
+      "fresh",
+      "use_soon",
+      "quality_loss",
+      "spoiled_risk"
+    ],
+    "confusion_matrix": [
+      [
+        78,
+        11,
+        29,
+        115
+      ],
+      [
+        135,
+        3,
+        77,
+        145
+      ],
+      [
+        226,
+        0,
+        14,
+        16
+      ],
+      [
+        409,
+        0,
+        0,
+        0
+      ]
+    ],
+    "ece": 0.3454753047460618,
+    "macro_f1": 0.05870542229169862,
+    "per_class": {
+      "fresh": {
+        "precision": 0.09198113207547169,
+        "recall": 0.33476394849785407,
+        "support": 233
+      },
+      "quality_loss": {
+        "precision": 0.11666666666666667,
+        "recall": 0.0546875,
+        "support": 256
+      },
+      "spoiled_risk": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 409
+      },
+      "use_soon": {
+        "precision": 0.21428571428571427,
+        "recall": 0.008333333333333333,
+        "support": 360
+      }
+    }
+  },
+  "model": "baseline_glint_count",
+  "n_groups": 9,
+  "n_samples": 1258,
+  "notes": "old method: linear on glintabs_density__RED only",
+  "permutation": {
+    "metric": "balanced_accuracy",
+    "n_permutations": 1000,
+    "null_mean": 0.21814495373013487,
+    "observed": 0.09944619545779686,
+    "p_value": 0.998001998001998
+  },
+  "run_id": "baseline_glint_count__freshness_class__LOGO_piece_id",
+  "target": "freshness_class",
+  "task": "classification"
+}

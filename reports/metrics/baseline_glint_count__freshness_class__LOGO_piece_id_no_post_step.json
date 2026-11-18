@@ -1,0 +1,88 @@
+{
+  "ci": {
+    "balanced_accuracy": [
+      0.03646932454973108,
+      0.32601556749939814
+    ],
+    "macro_f1": [
+      0.01857901352773861,
+      0.15353211089140506
+    ]
+  },
+  "config_hash": "45121082ad",
+  "cv_scheme": "LOGO_piece_id_no_post_step",
+  "feature_set": [
+    "glintabs_density__RED"
+  ],
+  "git_commit": "49fada54da741e3c8e9e7b21d5ba6d362f198f6c",
+  "group_col": "piece_id",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "balanced_accuracy": 0.09955584458060387,
+    "brier": 0.9700913379665685,
+    "classes": [
+      "fresh",
+      "use_soon",
+      "quality_loss",
+      "spoiled_risk"
+    ],
+    "confusion_matrix": [
+      [
+        78,
+        11,
+        28,
+        116
+      ],
+      [
+        135,
+        3,
+        77,
+        127
+      ],
+      [
+        226,
+        0,
+        14,
+        16
+      ],
+      [
+        409,
+        0,
+        0,
+        0
+      ]
+    ],
+    "ece": 0.3466767016327827,
+    "macro_f1": 0.05895785564067117,
+    "per_class": {
+      "fresh": {
+        "precision": 0.09198113207547169,
+        "recall": 0.33476394849785407,
+        "support": 233
+      },
+      "quality_loss": {
+        "precision": 0.11764705882352941,
+        "recall": 0.0546875,
+        "support": 256
+      },
+      "spoiled_risk": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 409
+      },
+      "use_soon": {
+        "precision": 0.21428571428571427,
+        "recall": 0.008771929824561403,
+        "support": 342
+      }
+    }
+  },
+  "model": "baseline_glint_count",
+  "n_groups": 9,
+  "n_samples": 1240,
+  "notes": "old method: linear on glintabs_density__RED only",
+  "permutation": {},
+  "run_id": "baseline_glint_count__freshness_class__LOGO_piece_id_no_post_step",
+  "target": "freshness_class",
+  "task": "classification"
+}

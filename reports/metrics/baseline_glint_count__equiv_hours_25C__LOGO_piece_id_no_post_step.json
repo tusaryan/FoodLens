@@ -1,0 +1,49 @@
+{
+  "ci": {
+    "mae": [
+      6.5688860993172495,
+      14.434746087359647
+    ],
+    "rmse": [
+      6.928929904590124,
+      15.408018236584251
+    ],
+    "spearman": [
+      -0.8601327809396294,
+      0.12049184584861117
+    ]
+  },
+  "config_hash": "45121082ad",
+  "cv_scheme": "LOGO_piece_id_no_post_step",
+  "feature_set": [
+    "glintabs_density__RED"
+  ],
+  "git_commit": "49fada54da741e3c8e9e7b21d5ba6d362f198f6c",
+  "group_col": "piece_id",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "mae": 10.560115096392558,
+    "per_group_mae": {
+      "exp1_D1A": 4.777419168620056,
+      "exp1_D1B": 8.179259076341264,
+      "exp2_D1A": 6.663285341420175,
+      "exp2_D2A": 8.501238635078877,
+      "exp2_D2B": 8.532419583337715,
+      "exp2_D3A": 6.984229699868582,
+      "exp2_D4A": 5.012315356603428,
+      "exp4_D1A": 8.743760048056187,
+      "exp5_D1A": 17.249401055082643
+    },
+    "r2": -2.105528815004404,
+    "rmse": 12.102387854473102,
+    "spearman": -0.5345537822174327
+  },
+  "model": "baseline_glint_count",
+  "n_groups": 9,
+  "n_samples": 1240,
+  "notes": "old method: linear on glintabs_density__RED only",
+  "permutation": {},
+  "run_id": "baseline_glint_count__equiv_hours_25C__LOGO_piece_id_no_post_step",
+  "target": "equiv_hours_25C",
+  "task": "regression"
+}

@@ -1,0 +1,94 @@
+{
+  "ci": {
+    "balanced_accuracy": [
+      0.40585235159180344,
+      0.6459188174514835
+    ],
+    "macro_f1": [
+      0.3201685149653169,
+      0.62042872850722
+    ]
+  },
+  "config_hash": "45121082ad",
+  "cv_scheme": "LOGO_piece_id",
+  "feature_set": [
+    "roi_mean__RED__rel"
+  ],
+  "git_commit": "49fada54da741e3c8e9e7b21d5ba6d362f198f6c",
+  "group_col": "piece_id",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "balanced_accuracy": 0.4888628675807242,
+    "brier": 0.8116261059231861,
+    "classes": [
+      "fresh",
+      "use_soon",
+      "quality_loss",
+      "spoiled_risk"
+    ],
+    "confusion_matrix": [
+      [
+        149,
+        84,
+        0,
+        0
+      ],
+      [
+        128,
+        161,
+        71,
+        0
+      ],
+      [
+        0,
+        50,
+        121,
+        85
+      ],
+      [
+        0,
+        0,
+        247,
+        162
+      ]
+    ],
+    "ece": 0.2899515907324418,
+    "macro_f1": 0.47950516419965544,
+    "per_class": {
+      "fresh": {
+        "precision": 0.5379061371841155,
+        "recall": 0.6394849785407726,
+        "support": 233
+      },
+      "quality_loss": {
+        "precision": 0.275626423690205,
+        "recall": 0.47265625,
+        "support": 256
+      },
+      "spoiled_risk": {
+        "precision": 0.6558704453441295,
+        "recall": 0.3960880195599022,
+        "support": 409
+      },
+      "use_soon": {
+        "precision": 0.5457627118644067,
+        "recall": 0.44722222222222224,
+        "support": 360
+      }
+    }
+  },
+  "model": "baseline_first_frame",
+  "n_groups": 9,
+  "n_samples": 1258,
+  "notes": "mentor: linear on roi_mean__RED__rel (needs the first photo)",
+  "permutation": {
+    "metric": "balanced_accuracy",
+    "n_permutations": 1000,
+    "null_mean": 0.3672223481488938,
+    "observed": 0.4888628675807242,
+    "p_value": 0.000999000999000999
+  },
+  "run_id": "baseline_first_frame__freshness_class__LOGO_piece_id",
+  "target": "freshness_class",
+  "task": "classification"
+}

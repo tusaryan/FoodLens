@@ -1,0 +1,88 @@
+{
+  "ci": {
+    "balanced_accuracy": [
+      0.03778675300414431,
+      0.19247787610619468
+    ],
+    "macro_f1": [
+      0.012526096033402923,
+      0.06358657389529485
+    ]
+  },
+  "config_hash": "45121082ad",
+  "cv_scheme": "LOGO_experiment",
+  "feature_set": [
+    "glintabs_density__RED"
+  ],
+  "git_commit": "49fada54da741e3c8e9e7b21d5ba6d362f198f6c",
+  "group_col": "experiment",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "balanced_accuracy": 0.06111381214234621,
+    "brier": 0.9847527889467086,
+    "classes": [
+      "fresh",
+      "use_soon",
+      "quality_loss",
+      "spoiled_risk"
+    ],
+    "confusion_matrix": [
+      [
+        41,
+        9,
+        65,
+        118
+      ],
+      [
+        111,
+        12,
+        88,
+        149
+      ],
+      [
+        226,
+        5,
+        9,
+        16
+      ],
+      [
+        409,
+        0,
+        0,
+        0
+      ]
+    ],
+    "ece": 0.3781721481990218,
+    "macro_f1": 0.046407630905697925,
+    "per_class": {
+      "fresh": {
+        "precision": 0.052096569250317665,
+        "recall": 0.1759656652360515,
+        "support": 233
+      },
+      "quality_loss": {
+        "precision": 0.05555555555555555,
+        "recall": 0.03515625,
+        "support": 256
+      },
+      "spoiled_risk": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 409
+      },
+      "use_soon": {
+        "precision": 0.46153846153846156,
+        "recall": 0.03333333333333333,
+        "support": 360
+      }
+    }
+  },
+  "model": "baseline_glint_count",
+  "n_groups": 4,
+  "n_samples": 1258,
+  "notes": "old method: linear on glintabs_density__RED only",
+  "permutation": {},
+  "run_id": "baseline_glint_count__freshness_class__LOGO_experiment",
+  "target": "freshness_class",
+  "task": "classification"
+}

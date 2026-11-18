@@ -18,6 +18,8 @@ E_CONFIG = "E_CONFIG"  # invalid or missing configuration
 E_NO_SESSION = "E_NO_SESSION"  # file is not inside a recognisable session folder
 E_MIXED_LIGHT = "E_MIXED_LIGHT"  # no single LED channel dominates (room light, mixed lights)
 E_DUPLICATE = "E_DUPLICATE"  # byte-identical copy of another raw file ("- Copy", "(1)"; S07)
+E_LABEL = "E_LABEL"  # labels cannot be built (missing temperature, broken piece chain; S08)
+E_SPLIT = "E_SPLIT"  # a CV split is impossible or would leak (too few groups; S08)
 
 # ---- QC warning codes (frame kept, but flagged) ----
 W_LIGHT_MISMATCH = "W_LIGHT_MISMATCH"  # pixel light differs from the schedule light
@@ -39,6 +41,8 @@ ALL_CODES: frozenset[str] = frozenset(
         E_NO_SESSION,
         E_MIXED_LIGHT,
         E_DUPLICATE,
+        E_LABEL,
+        E_SPLIT,
     }
 )
 
@@ -71,3 +75,17 @@ class ConfigError(FoodLensError):
 
     def __init__(self, detail: str = "") -> None:
         super().__init__(E_CONFIG, detail)
+
+
+class LabelError(FoodLensError):
+    """Labels cannot be built. Always uses code ``E_LABEL``."""
+
+    def __init__(self, detail: str = "") -> None:
+        super().__init__(E_LABEL, detail)
+
+
+class SplitError(FoodLensError):
+    """A CV split is impossible or would leak. Always uses code ``E_SPLIT``."""
+
+    def __init__(self, detail: str = "") -> None:
+        super().__init__(E_SPLIT, detail)

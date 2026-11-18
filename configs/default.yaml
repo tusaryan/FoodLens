@@ -95,6 +95,9 @@ qa:                          # visual QA contact sheets (`foodlens eda-sheets`, 
   crop_margin: 0.25          # crop = session-ROI bbox + this fraction of its size per side (shows holder/tray)
   marker_px: 9.0             # radius (px at glint resolution) of the cyan glint-centroid circles
   dpi: 150                   # PNG dpi of the sheets (git-tracked; 300 dpi gave 3.5 MB per sheet)
+  crop_pad_px: 6             # `foodlens crops` (S08): meat-only crops = full-meat mask (lit + shadow) bbox
+                             # + this margin (work-res px); pixels outside the mask set to 0 (background removed)
+  crop_sample: 12            # frames NOT reviewed before, rendered original vs crop for the visual check
 
 eda:                         # exploratory analysis (P3: `foodlens eda-stats`, `foodlens eda`)
   shadow_min_level: 8.0      # smoothed RED session-median level (0-255) above which pixels joined to the lit ROI are
@@ -145,12 +148,44 @@ cv:
   ece_bins: 10               # expected calibration error bins
 
 labels:
-  # Freshness class definition. MUST be confirmed by the user/mentor (plan/PROGRESS.md open question 3).
+  # Freshness LEVEL (S08, user answer to open question 3: several logical levels, "indicative only").
+  # Definition B: by temperature-equivalent hours at 25 °C since the start of filming (storage_day
+  # unknown). Because the class is set by EQUIVALENT hours, it adapts to the storage temperature:
+  # a warm room reaches a level sooner in clock hours, a fridge (T near T_min) barely advances.
+  # The clock-hour range of each level at a given temperature is labels.labels.level_clock_ranges
+  # (the future app "i" button). Thresholds fixed BEFORE any model result; approximate:
+  #   2 h  = food-safety "2-hour rule" for perishable food above refrigeration (USDA FSIS);
+  #   6 h  = typical end of the bacterial lag phase near 25 °C (growth starts to accelerate);
+  #   12 h = order of time for spoilage flora to reach ~10^7 CFU/g at 25 °C from a ~10^4 start.
+  # Must be confirmed by the mentor (plan/PROGRESS.md open question 3).
   class_definition: B        # A = by storage_day (needs confirmed data); B = by equiv hours at 25 °C
-  classes: [fresh, use_soon, spoiled_risk]
-  equiv_h_thresholds: [2.0, 4.0]  # definition B: <2 h fresh, 2-4 h use_soon, >=4 h spoiled_risk
+  classes: [fresh, use_soon, quality_loss, spoiled_risk]
+  equiv_h_thresholds: [2.0, 6.0, 12.0]  # <2 fresh, 2-6 use_soon, 6-12 quality_loss, >=12 spoiled_risk
 
 thermal:                     # Ratkowsky square-root model: rate ∝ (T - T_min)^2
-  T_min: -8.0                # °C, notional minimum growth temperature (verify against refs in P5)
+  T_min: -8.0                # °C, notional minimum growth temperature. S08 check: the square-root model
+                             # form for poultry spoilage is confirmed (Ratkowsky 1982; 1984 test on 28
+                             # poultry datasets, -2..25 °C, docs/01 refs 4-5) but the exact T_min could
+                             # not be read (full texts blocked); -8 kept as pre-registered.
+  T_min_sensitivity: -10.0   # °C, Olley-Ratkowsky spoilage-curve value; labels report the difference
   T_ref: 25.0                # °C, reference temperature for equivalent hours
   indoor_offset_c: 0.0       # °C added to the weather-archive temperature for indoor conditions
+
+evaluation:                  # P5 harness (`foodlens evaluate`)
+  targets: [equiv_hours_25C, hours_since_start]  # regression labels; first = headline
+  class_target: freshness_class
+  group_cols: [piece_id, experiment]  # CV groupings reported; piece_id (= session unless chained) headline,
+                             # experiment = sensitivity in case EXP-2 days are one piece (open question 10)
+  baseline_single: roi_median__RED       # (b) single-feature model: ROI median of red
+  baseline_glint: glintabs_density__RED  # (c) the old method: spot count per ROI area, absolute floor
+  baseline_first_frame: roi_mean__RED__rel  # mentor: intensity / first frame (needs session start)
+  leaky_folds: 5             # KFold(shuffle) folds of the LEAKY random-split demo
+  rf_n_estimators: 300       # leakage-demo RandomForest (fixed config, no tuning)
+  rf_min_samples_leaf: 5
+  complete_only: true        # only triplets with all of R, G, B
+  drop_feature_prefixes: [shd_]  # S08: shadow-zone features are NaN exactly in the EXP-3/4/5 framing (no
+                             # shadow), so their missingness encodes the setup = the long sessions
+                             # (a session proxy, AGENTS.md red flag). Kept in the table, not in models.
+  step_sensitivity_sessions: [exp2_D2A]  # sessions whose scene step changes the MEAT features (camera
+                             # colour balance, S05/S06): post-step triplets get `post_step` and a
+                             # sensitivity run without them. exp5's steps are tray-only (S07): not listed.

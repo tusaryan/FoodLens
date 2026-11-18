@@ -1,0 +1,88 @@
+{
+  "ci": {
+    "balanced_accuracy": [
+      0.01532253939021914,
+      0.6091983997899623
+    ],
+    "macro_f1": [
+      0.006607348926932261,
+      0.3813118689686604
+    ]
+  },
+  "config_hash": "45121082ad",
+  "cv_scheme": "temporal_60_40",
+  "feature_set": [
+    "roi_median__RED"
+  ],
+  "git_commit": "49fada54da741e3c8e9e7b21d5ba6d362f198f6c",
+  "group_col": "session_id",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "balanced_accuracy": 0.4344896788990826,
+    "brier": 0.7470440977995012,
+    "classes": [
+      "fresh",
+      "use_soon",
+      "quality_loss",
+      "spoiled_risk"
+    ],
+    "confusion_matrix": [
+      [
+        2,
+        0,
+        0,
+        0
+      ],
+      [
+        84,
+        30,
+        24,
+        22
+      ],
+      [
+        14,
+        16,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        146,
+        180
+      ]
+    ],
+    "ece": 0.5079106234941065,
+    "macro_f1": 0.2524000148263464,
+    "per_class": {
+      "fresh": {
+        "precision": 0.02,
+        "recall": 1.0,
+        "support": 2
+      },
+      "quality_loss": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 30
+      },
+      "spoiled_risk": {
+        "precision": 0.8910891089108911,
+        "recall": 0.5504587155963303,
+        "support": 327
+      },
+      "use_soon": {
+        "precision": 0.6382978723404256,
+        "recall": 0.1875,
+        "support": 160
+      }
+    }
+  },
+  "model": "baseline_red_median",
+  "n_groups": 9,
+  "n_samples": 1258,
+  "notes": "linear on roi_median__RED only",
+  "permutation": {},
+  "run_id": "baseline_red_median__freshness_class__temporal_60_40",
+  "target": "freshness_class",
+  "task": "classification"
+}

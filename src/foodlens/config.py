@@ -16,6 +16,9 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from foodlens.errors import ConfigError
+from foodlens.samples_config import SamplesConfig, SessionSpec, TempSpec
+
+__all__ = ["Config", "SamplesConfig", "SessionSpec", "TempSpec", "load_config", "load_samples"]
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG_PATH = REPO_ROOT / "configs" / "default.yaml"
@@ -121,6 +124,8 @@ class QAConfig(_Section):
     crop_margin: float = Field(ge=0)
     marker_px: float = Field(gt=0)
     dpi: int = Field(ge=50)
+    crop_pad_px: int = Field(ge=0)  # meat crops: margin around the full-meat bbox (work res px)
+    crop_sample: int = Field(ge=1)  # meat crops: frames in the visual-review contact sheet
 
 
 class EDAConfig(_Section):
@@ -182,6 +187,7 @@ class LabelsConfig(_Section):
 
 class ThermalConfig(_Section):
     T_min: float
+    T_min_sensitivity: float
     T_ref: float
     indoor_offset_c: float
 
@@ -190,6 +196,21 @@ class ThermalConfig(_Section):
         if self.T_min >= self.T_ref:
             raise ValueError("thermal.T_min must be < thermal.T_ref")
         return self
+
+
+class EvaluationConfig(_Section):
+    targets: list[str] = Field(min_length=1)  # regression label columns (labels.labels)
+    class_target: str  # classification label column
+    group_cols: list[str] = Field(min_length=1)  # CV groupings to report (first = headline)
+    baseline_single: str  # one-feature linear baseline (ROI median of RED)
+    baseline_glint: str  # the old method: spot (glint) count density, absolute floor
+    baseline_first_frame: str  # mentor's first-frame-normalised intensity (needs session start)
+    leaky_folds: int = Field(ge=2)
+    rf_n_estimators: int = Field(ge=10)
+    rf_min_samples_leaf: int = Field(ge=1)
+    complete_only: bool  # evaluate complete R/G/B triplets only
+    drop_feature_prefixes: list[str]  # model-excluded feature prefixes (setup proxies)
+    step_sensitivity_sessions: list[str]  # post-step triplets of these = sensitivity case
 
 
 class Config(_Section):
@@ -212,6 +233,7 @@ class Config(_Section):
     cv: CVConfig
     labels: LabelsConfig
     thermal: ThermalConfig
+    evaluation: EvaluationConfig
     root: Path = Field(default=REPO_ROOT, exclude=True)
 
     def path(self, key: str) -> Path:
@@ -220,35 +242,6 @@ class Config(_Section):
             raise ConfigError(f"unknown paths key {key!r}")
         p = Path(getattr(self.paths, key))
         return p if p.is_absolute() else self.root / p
-
-
-# ---- samples.yaml ----
-class TempSpec(_Section):
-    mode: Literal["weather", "fixed", "log"]
-    value_c: float | None = None  # °C, used by mode 'fixed' (manual constant)
-    log_file: str | None = None  # CSV timestamp,temp_c[,rh], used by mode 'log' (repo-relative)
-
-    @model_validator(mode="after")
-    def _mode_needs_value(self) -> TempSpec:
-        if self.mode == "fixed" and self.value_c is None:
-            raise ValueError("temp.mode 'fixed' needs temp.value_c (°C)")
-        if self.mode == "log" and not self.log_file:
-            raise ValueError("temp.mode 'log' needs temp.log_file")
-        return self
-
-
-class SessionSpec(_Section):
-    experiment: str
-    folder: str
-    piece_id: str | None = None
-    storage_day: int | None = None
-    pre_age_h: float | None = Field(default=None, ge=0)
-    temp: TempSpec
-    notes: str = ""
-
-
-class SamplesConfig(_Section):
-    sessions: dict[str, SessionSpec] = Field(min_length=1)
 
 
 # ---- loading ----

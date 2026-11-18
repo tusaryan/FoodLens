@@ -1,0 +1,55 @@
+{
+  "ci": {
+    "mae": [
+      5.101942056520743,
+      7.032241194481747
+    ],
+    "rmse": [
+      5.67172941540717,
+      8.399862019024702
+    ],
+    "spearman": [
+      -0.6611459463933297,
+      0.4079105325073868
+    ]
+  },
+  "config_hash": "45121082ad",
+  "cv_scheme": "LOGO_piece_id",
+  "feature_set": [
+    "roi_median__RED"
+  ],
+  "git_commit": "49fada54da741e3c8e9e7b21d5ba6d362f198f6c",
+  "group_col": "piece_id",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "mae": 6.053188947817125,
+    "per_group_mae": {
+      "exp1_D1A": 5.879203756094051,
+      "exp1_D1B": 6.632960678803017,
+      "exp2_D1A": 6.032821627001501,
+      "exp2_D2A": 6.278994702279486,
+      "exp2_D2B": 6.197858225866329,
+      "exp2_D3A": 5.005701434600066,
+      "exp2_D4A": 5.257585918182871,
+      "exp4_D1A": 7.372968974395713,
+      "exp5_D1A": 4.89613710277785
+    },
+    "r2": -0.25289233881991824,
+    "rmse": 7.105476856891133,
+    "spearman": -0.5998228767425331
+  },
+  "model": "baseline_mean",
+  "n_groups": 9,
+  "n_samples": 1258,
+  "notes": "training mean / majority class",
+  "permutation": {
+    "metric": "mae",
+    "n_permutations": 1000,
+    "null_mean": 6.053188947817123,
+    "observed": 6.053188947817125,
+    "p_value": 0.8411588411588412
+  },
+  "run_id": "baseline_mean__hours_since_start__LOGO_piece_id",
+  "target": "hours_since_start",
+  "task": "regression"
+}

@@ -59,3 +59,9 @@
 - 2026-11-18: The step detector runs on the global (tray-dominated) mean, but `step_correct` estimates the gain per column from the ROI values themselves, so a tray-only step (exp5 BLUE) barely changes the meat features.
 - 2026-11-18: Full `foodlens features` on 4817 frames takes ~23 min (glint-res loads + two top-hats + GLCM + LBP per frame); it is cached per frame in data/interim/features/<hash>/.
 - 2026-11-18: With 2x the sessions the S06 choices hold: relative-rule RED glint density falls in 10/10 sessions (abs rule 6/10).
+- 2026-11-18: (S08) Crop to the meat BEFORE analysis (user lesson). Features were already computed only inside the meat masks, but make the step explicit and inspectable: `foodlens crops` = full-meat (lit + shadow) bbox crop with background zeroed.
+- 2026-11-18: (S08) A feature's MISSINGNESS can leak the setup: `shd_*` is NaN exactly in the EXP-3/4/5 framing (= the long sessions). Check NaN patterns per session before feeding a feature set to a model; excluded via `evaluation.drop_feature_prefixes`.
+- 2026-11-18: (S08) exp5's scene steps are tray-only; flag "post-step" sensitivity rows only for sessions whose step changes the meat (`evaluation.step_sensitivity_sessions`), or the sensitivity run silently drops 276 good exp5 triplets.
+- 2026-11-18: (S08) Under leave-one-piece-out, the majority-class baseline scores BELOW chance (balanced acc ~0.08 vs 0.25): the held-out piece shifts the training majority. Report chance level next to it.
+- 2026-11-18: (S08) T_min -8 vs -10 °C changes equivalent hours by only 0.5-2.4 % here (label_summary.csv); the label is not sensitive to the unverified T_min.
+- 2026-11-18: (S08) pandas `.loc[...] = array` breaks on a non-unique index (concat of per-session frames); reset_index in label builders.

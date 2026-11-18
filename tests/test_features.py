@@ -230,3 +230,22 @@ def test_neck_cut_removes_thin_tail_and_triplet_masks(make_meat_image):
     ch[:, :20] = 60  # lit tray strip far from the meat
     ref = frame_reference(ch, tm.full, CFG)
     assert ref is not None and ref[:, :15].all() and not (ref & tm.full).any()
+
+
+def test_crop_to_mask_removes_background_and_pads():
+    from foodlens.vision.crop import crop_to_mask
+
+    img = np.full((20, 30, 3), 200, np.uint8)
+    mask = np.zeros((20, 30), bool)
+    mask[5:10, 8:16] = True
+    mask[5, 8] = False  # a non-meat pixel inside the bbox must become 0
+    c = crop_to_mask(img, mask, pad=2)
+    assert c.bbox == (3, 6, 12, 18)
+    assert c.image.shape == (9, 12, 3)
+    assert (c.image[~c.mask] == 0).all() and (c.image[c.mask] == 200).all()
+    assert c.image[2, 2].sum() == 0
+    edge = np.zeros((20, 30), bool)
+    edge[0:3, 0:2] = True
+    assert crop_to_mask(img, edge, pad=5).bbox == (0, 0, 8, 7)
+    with pytest.raises(ValueError):
+        crop_to_mask(img, np.zeros((20, 30), bool), pad=1)

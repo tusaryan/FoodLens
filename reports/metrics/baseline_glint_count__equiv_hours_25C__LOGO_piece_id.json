@@ -1,0 +1,55 @@
+{
+  "ci": {
+    "mae": [
+      6.46470468482039,
+      14.422042501547978
+    ],
+    "rmse": [
+      6.818374729341027,
+      15.436306093229904
+    ],
+    "spearman": [
+      -0.8602787410251382,
+      0.08065556864240196
+    ]
+  },
+  "config_hash": "45121082ad",
+  "cv_scheme": "LOGO_piece_id",
+  "feature_set": [
+    "glintabs_density__RED"
+  ],
+  "git_commit": "49fada54da741e3c8e9e7b21d5ba6d362f198f6c",
+  "group_col": "piece_id",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "mae": 10.528245954109952,
+    "per_group_mae": {
+      "exp1_D1A": 4.712408097819212,
+      "exp1_D1B": 8.076055086524601,
+      "exp2_D1A": 6.56716067428116,
+      "exp2_D2A": 7.768850803107472,
+      "exp2_D2B": 8.415406403701503,
+      "exp2_D3A": 6.863796879782393,
+      "exp2_D4A": 4.925524762209947,
+      "exp4_D1A": 8.821762794815342,
+      "exp5_D1A": 17.372234349986474
+    },
+    "r2": -2.121903781678017,
+    "rmse": 12.097977036454225,
+    "spearman": -0.5414185370875902
+  },
+  "model": "baseline_glint_count",
+  "n_groups": 9,
+  "n_samples": 1258,
+  "notes": "old method: linear on glintabs_density__RED only",
+  "permutation": {
+    "metric": "mae",
+    "n_permutations": 1000,
+    "null_mean": 10.106887604194212,
+    "observed": 10.528245954109952,
+    "p_value": 1.0
+  },
+  "run_id": "baseline_glint_count__equiv_hours_25C__LOGO_piece_id",
+  "target": "equiv_hours_25C",
+  "task": "regression"
+}

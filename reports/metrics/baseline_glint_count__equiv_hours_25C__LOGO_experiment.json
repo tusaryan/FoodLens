@@ -1,0 +1,44 @@
+{
+  "ci": {
+    "mae": [
+      8.526418518878378,
+      15.95332369392353
+    ],
+    "rmse": [
+      9.19643064973945,
+      16.60885545801923
+    ],
+    "spearman": [
+      -0.8542081769497769,
+      0.5043406522151764
+    ]
+  },
+  "config_hash": "45121082ad",
+  "cv_scheme": "LOGO_experiment",
+  "feature_set": [
+    "glintabs_density__RED"
+  ],
+  "git_commit": "49fada54da741e3c8e9e7b21d5ba6d362f198f6c",
+  "group_col": "experiment",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "mae": 11.316471069257474,
+    "per_group_mae": {
+      "EXP-1": 7.072900105115771,
+      "EXP-2": 9.165085700683159,
+      "EXP-4": 8.821762794815342,
+      "EXP-5": 17.372234349986474
+    },
+    "r2": -2.392163422453413,
+    "rmse": 12.610763536844823,
+    "spearman": -0.5394977155909708
+  },
+  "model": "baseline_glint_count",
+  "n_groups": 4,
+  "n_samples": 1258,
+  "notes": "old method: linear on glintabs_density__RED only",
+  "permutation": {},
+  "run_id": "baseline_glint_count__equiv_hours_25C__LOGO_experiment",
+  "target": "equiv_hours_25C",
+  "task": "regression"
+}

@@ -1,6 +1,10 @@
 # One entry per capture session (folder under paths.raw_dir). Adding a new session = add a folder + an
 # entry here; no code changes. piece_id / storage_day / pre_age_h stay null until the data team confirms
 # (docs/04_DATA_COLLECTION_CHANGES.md §D). With piece_id null the CV group falls back to session_id.
+# Same piece filmed again (S08): add `continues: <earlier session id>` (and optionally `storage_temp_c`, °C
+# between the two sessions). The session then shares the earlier piece_id (CV group) and its age labels
+# continue from the earlier session. Default (user decision S08, open question 10): every session is a
+# new piece. `exclude: true` + `exclude_reason` drops a session from labels/evaluation (data kept).
 # temp.mode: weather (archive lookup at the session time and location) | fixed (temp.value_c in °C).
 
 sessions:
@@ -67,6 +71,8 @@ sessions:
     storage_day: null
     pre_age_h: null
     temp: {mode: weather}
+    exclude: true
+    exclude_reason: "user decision S08 (open question 9): unreliable; meat moved/brightened +59/+111/+27 % R/G/B at 19:55 (human interference suspected)"
     notes: "added S07; overnight 04-09 12:55 -> 05-09 04:49 (~16 h)"
   exp4_D1A:
     experiment: EXP-4

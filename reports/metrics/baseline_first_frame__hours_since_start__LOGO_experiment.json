@@ -1,0 +1,44 @@
+{
+  "ci": {
+    "mae": [
+      1.6919707882288864,
+      6.814293641682812
+    ],
+    "rmse": [
+      2.325064492812071,
+      7.595531174067078
+    ],
+    "spearman": [
+      0.5276765411493369,
+      0.9914552422322768
+    ]
+  },
+  "config_hash": "45121082ad",
+  "cv_scheme": "LOGO_experiment",
+  "feature_set": [
+    "roi_mean__RED__rel"
+  ],
+  "git_commit": "49fada54da741e3c8e9e7b21d5ba6d362f198f6c",
+  "group_col": "experiment",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "mae": 4.5863456481901785,
+    "per_group_mae": {
+      "EXP-1": 1.872947578884541,
+      "EXP-2": 1.6654640865671997,
+      "EXP-4": 5.191082756153392,
+      "EXP-5": 7.471626975492246
+    },
+    "r2": 0.1203972672684992,
+    "rmse": 5.953599790786789,
+    "spearman": 0.8281047400952242
+  },
+  "model": "baseline_first_frame",
+  "n_groups": 4,
+  "n_samples": 1258,
+  "notes": "mentor: linear on roi_mean__RED__rel (needs the first photo)",
+  "permutation": {},
+  "run_id": "baseline_first_frame__hours_since_start__LOGO_experiment",
+  "target": "hours_since_start",
+  "task": "regression"
+}

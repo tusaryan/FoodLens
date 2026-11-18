@@ -107,8 +107,12 @@ def features(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, forc
 
 @app.command()
 def labels(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: bool = ForceOpt):
-    """Build label columns (hours, equivalent hours, freshness class) (P5)."""
-    _stub("labels", config, limit, force)
+    """Build label columns (hours, equivalent hours, freshness level) per triplet (P5.T1)."""
+    from foodlens.evaluation.run import run_labels
+
+    lab = run_labels(load_config(config), limit)
+    typer.echo(lab.groupby("freshness_class").size().to_string())
+    stage_done("labels", len(lab))
 
 
 @app.command()
@@ -118,9 +122,22 @@ def train(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: 
 
 
 @app.command()
-def evaluate(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: bool = ForceOpt):
-    """Evaluate models with grouped CV, CIs and baselines (P5/P6)."""
-    _stub("evaluate", config, limit, force)
+def evaluate(
+    config: Path | None = ConfigOpt,
+    limit: int | None = LimitOpt,
+    force: bool = ForceOpt,
+    model: str = typer.Option(
+        "baseline_*", "--model", help="Glob over model names (baseline_*, leakage_demo, *)."
+    ),
+):
+    """Evaluate models with grouped CV, CIs, permutation tests and baselines (P5.T5).
+    ``--limit N`` keeps N triplets per session (smoke test)."""
+    from foodlens.evaluation.run import run_evaluate
+
+    table = run_evaluate(load_config(config), model, limit)
+    if len(table):
+        typer.echo(table[["run_id", "metric", "value", "ci_lo", "ci_hi"]].to_string(index=False))
+    stage_done("evaluate", len(table))
 
 
 @app.command()
@@ -174,3 +191,24 @@ def eda_sample(
 
 if __name__ == "__main__":
     app()
+
+
+@app.command()
+def crops(
+    config: Path | None = ConfigOpt,
+    limit: int | None = LimitOpt,
+    force: bool = ForceOpt,
+    tag: str = typer.Option("", "--tag", help="Render a NEW review sample tagged e.g. S08."),
+):
+    """Meat-only crops (full meat = lit + shadow, background set to 0) of every usable frame
+    (S08); ``--tag`` also renders original vs crop for frames never reviewed before."""
+    from foodlens.vision.crop import review_sheet, run_crops
+
+    cfg = load_config(config)
+    index = run_crops(cfg, limit, force)
+    if tag:
+        png, sample = review_sheet(cfg, index, tag)
+        typer.echo(f"review sheet: {png} ({len(sample)} frames)")
+    ok = int((index["crop_reason"] == "").sum())
+    typer.echo(f"crops: {ok} ok, {len(index) - ok} rejected")
+    stage_done("crops", ok)
