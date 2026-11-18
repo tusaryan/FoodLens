@@ -1,0 +1,46 @@
+# One entry per capture session (folder under paths.raw_dir). Adding a new session = add a folder + an
+# entry here; no code changes. piece_id / storage_day / pre_age_h stay null until the data team confirms
+# (docs/04_DATA_COLLECTION_CHANGES.md §D). With piece_id null the CV group falls back to session_id.
+# temp.mode: weather (archive lookup at the session time and location) | fixed (temp.value_c in °C).
+
+sessions:
+  exp1_D1A:
+    experiment: EXP-1
+    folder: EXP-1_28-08-2026/exp1_D1A
+    piece_id: null
+    storage_day: null
+    pre_age_h: null
+    temp: {mode: weather}
+    notes: "blue LED off until ~13:34 (24 black BLUE frames); scene-change frame at 14:30 (room lights on)"
+  exp1_D1B:
+    experiment: EXP-1
+    folder: EXP-1_28-08-2026/exp1_D1B
+    piece_id: null
+    storage_day: null
+    pre_age_h: null
+    temp: {mode: weather}
+    notes: "glint-count trend opposite in sign to D1A"
+  exp2_D2A:
+    experiment: EXP-2
+    folder: EXP-2_31-08-2026_to_03-09-2026/DATE-01-09-2026/exp2_D2A
+    piece_id: null
+    storage_day: null
+    pre_age_h: null
+    temp: {mode: weather}
+    notes: "one 92 s capture gap"
+  exp2_D2B:
+    experiment: EXP-2
+    folder: EXP-2_31-08-2026_to_03-09-2026/DATE-01-09-2026/exp2_D2B
+    piece_id: null
+    storage_day: null
+    pre_age_h: null
+    temp: {mode: weather}
+    notes: "images stored rotated (4624 px wide); apply exif_transpose"
+  exp2_D3A:
+    experiment: EXP-2
+    folder: EXP-2_31-08-2026_to_03-09-2026/DATE-02-09-2026/exp2_D3A
+    piece_id: null
+    storage_day: null
+    pre_age_h: null
+    temp: {mode: weather}
+    notes: "images stored rotated (4624 px wide); apply exif_transpose"

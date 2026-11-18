@@ -2,7 +2,7 @@
 
 FoodLens estimates **how long raw chicken has been at room temperature** (hours) and gives a **freshness class** (fresh / use-soon / spoiled-risk). The input is photos taken in a dark box under red, green and blue LED light with fixed phone-camera settings. It builds on the smartphone light-scatter biosensor of **Liang, Park & Yoon (2014, Sci. Rep. 4:5953)** and the multi-angle scatter classification of **Sweeney & Yoon (2017, IEEE Sens. J.)**.
 
-> Status: **planning done (S01, 2026-11-18). Implementation starts at Phase P0.** See `plan/PROGRESS.md`.
+> Status: **P0 foundation done (S02, 2026-11-18): package skeleton, config, CLI stubs, check gate. Next: P1 ingest & QC.** See `plan/PROGRESS.md`.
 
 ## 1. How it works (simple version)
 ```mermaid
@@ -30,13 +30,16 @@ Details: [`docs/01_RESEARCH_AND_RATIONALE.md`](docs/01_RESEARCH_AND_RATIONALE.md
 | Temperature effect | Ratkowsky model: growth rate ∝ (T − T_min)², so 1 h at 33 °C ≈ 1.5 h at 25 °C |
 | What the camera sees change | moisture film → droplets → drying (glints); colour (myoglobin → metmyoglobin); texture |
 
-## 3. Setup (after Phase P0)
+## 3. Setup
 ```bash
-brew install uv            # only if uv is missing
-uv sync                    # creates .venv with exact versions
-bash scripts/check.sh      # must end with CHECK RESULT: PASS
+brew install uv            # only if uv is missing (uv >= 0.11)
+uv sync                    # creates .venv (Python 3.12) with the exact versions in uv.lock
+bash scripts/check.sh      # ruff + pytest + size limits (+ notebooks); must end with CHECK RESULT: PASS
+uv run foodlens --help     # lists the pipeline stages
 ```
-Put raw sessions under `experiment/` (gitignored, never modified) and describe each one in `configs/samples.yaml`.
+- Always run Python through `uv run` (never a global `python3`/`pip`).
+- Settings live in `configs/default.yaml` (validated by `foodlens.config`). Put raw sessions under `experiment/` (gitignored, never modified) and describe each one in `configs/samples.yaml`.
+- Logging level: `FOODLENS_LOG=DEBUG uv run foodlens ...`. Notebook timeout: `FOODLENS_NB_TIMEOUT` (s, default 900).
 
 ## 4. Usage (after Phase P8)
 ```bash

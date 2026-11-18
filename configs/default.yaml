@@ -1,0 +1,73 @@
+# FoodLens default configuration. Single source of truth for paths, thresholds and parameters.
+# Loaded and validated by foodlens.config.load_config(). Relative paths are relative to the repo root.
+# Pixel values are 0-255 (uint8). Times are in seconds unless the key says _h (hours).
+
+paths:
+  raw_dir: experiment        # raw sessions, read-only, never modified
+  data_dir: data             # derived data (gitignored): interim/, processed/, cache/
+  reports_dir: reports       # figures/, tables/, metrics/
+  models_dir: models         # trained models (gitignored except model cards)
+  samples_file: configs/samples.yaml
+
+seed: 42                     # global RNG seed (numpy, sklearn, bootstrap)
+n_jobs: -1                   # joblib workers; -1 = all cores
+
+location:                    # capture site, used for the weather-archive temperature lookup
+  lat: 30.765
+  lon: 76.786
+  tz: Asia/Kolkata
+
+qc:
+  dark_p95: 3.0              # p95 of the max channel below this -> DARK frame (LED off)
+  min_signal: 8.0            # pixels with max channel above this count as lit
+  dominance_ratio: 0.6       # dominant channel share of lit-pixel mean needed to accept the light
+  scene_z: 6.0               # |robust z| of ROI area/centroid/global mean above this -> SCENE_CHANGE
+  blur_div: 3.0              # Laplacian variance < (session-light p5 / blur_div) -> BLUR warning
+
+roi:
+  blur_sigma: 2.0            # Gaussian sigma (px at work resolution) before Otsu
+  close_r: 7                 # morphological close disk radius (px)
+  open_r: 5                  # morphological open disk radius (px)
+  min_frac: 0.03             # minimum ROI area as a fraction of the frame
+  max_frac: 0.8              # maximum ROI area as a fraction of the frame
+  erode_px: 6                # erosion to drop edges / shadow rim (px)
+  min_iou: 0.6               # mask IoU vs session median mask below this -> flag
+
+glint:                       # glints = specular reflections of surface moisture (NOT bacteria)
+  tophat_r: 9                # white top-hat disk radius (px at glint resolution)
+  k: 6.0                     # threshold = ROI median + k * MAD
+  abs_min: 40                # and at least this absolute value (0-255)
+  min_area_px: 3             # minimum connected-component area (px)
+  match_px: 6.0              # centroid distance for matching glints between frames (px, EDA only)
+
+vision:
+  work_long_side: 1024       # long side (px) for ROI and colour features
+  glint_long_side: 2048      # long side (px) for glint statistics
+  glcm_distances: [1, 3]     # GLCM pixel distances
+  glcm_levels: 32            # GLCM grey levels
+  lbp_p: 8                   # LBP neighbours
+  lbp_r: 1                   # LBP radius (px)
+
+triplet:
+  max_span_s: 200            # max time span (s) of consecutive R, G, B frames forming one triplet
+
+cv:
+  group_col_preference: [piece_id, session_id]  # first fully non-null column is the CV group
+  inner_splits: 3            # inner GroupKFold folds for nested tuning
+  min_groups_for_tuning: 3   # fewer training groups than this -> fixed default hyper-parameters
+  temporal_train_frac: 0.6   # temporal holdout: first 60 % of each session trains, last 40 % tests
+  n_bootstrap: 2000          # group bootstrap repetitions for 95 % CIs
+  n_permutations: 1000       # grouped permutation test repetitions
+  ci_level: 0.95
+  ece_bins: 10               # expected calibration error bins
+
+labels:
+  # Freshness class definition. MUST be confirmed by the user/mentor (plan/PROGRESS.md open question 3).
+  class_definition: B        # A = by storage_day (needs confirmed data); B = by equiv hours at 25 °C
+  classes: [fresh, use_soon, spoiled_risk]
+  equiv_h_thresholds: [2.0, 4.0]  # definition B: <2 h fresh, 2-4 h use_soon, >=4 h spoiled_risk
+
+thermal:                     # Ratkowsky square-root model: rate ∝ (T - T_min)^2
+  T_min: -8.0                # °C, notional minimum growth temperature (verify against refs in P5)
+  T_ref: 25.0                # °C, reference temperature for equivalent hours
+  indoor_offset_c: 0.0       # °C added to the weather-archive temperature for indoor conditions

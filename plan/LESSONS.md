@@ -9,3 +9,6 @@
 - 2026-11-18: The system Python (pyenv 3.12) has torch 2.12 globally, but the project must use `.venv` via uv. `python3` from another cwd may resolve to a different pyenv version: always use `uv run`.
 - 2026-11-18: Local models already on disk: Ollama (qwen3.5:9b, nemotron-3.5-bolt:e4b, embeddinggemma-2, qwen3-embedding:0.6b) and MLX Gemma-4 e2b/e4b 4-bit under `~/Library/Application Support/Tavys/models/mlx/`. Reuse them, do not download again.
 - 2026-11-18: Commit messages must never mention Claude/AI/agents (no Co-Authored-By or 'Generated with' lines).
+- 2026-11-18: `uv init --package` in an existing repo leaves README.md untouched but sets the script entry to `foodlens:main`; point it at `foodlens.cli:app`.
+- 2026-11-18: Config paths are relative to the repo root (parent of `configs/`); use `cfg.path("data_dir")`. `config_hash` excludes the root, so hashes are machine-independent.
+- 2026-11-18: Config sections use `extra="forbid"`: a typo in a YAML key raises `ConfigError` instead of being ignored.
