@@ -1,0 +1,11 @@
+# LESSONS: pitfalls and insights (append one dated line each; never delete)
+
+- 2026-11-18: Photos are very dark (73–96 % of pixels < 15/255). Whole-frame statistics are mostly background; always use the ROI.
+- 2026-11-18: EXP-1 D1A has 24 completely black BLUE-slot frames (LED off until ~13:34) plus one scene-change frame at 14:30 (room lights on). Detect them by pixels, never trust the schedule alone.
+- 2026-11-18: D2B and D3A images are stored rotated (4624 px wide). Apply `ImageOps.exif_transpose` and never use orientation or size as a feature.
+- 2026-11-18: The capture interval jitters 59–61 s (one 92 s gap in D2A). Do not assign lights with `floor(elapsed/60)`; use the sequence index plus pixel verification.
+- 2026-11-18: The spot-count trend flips sign between sessions (D1A +0.94, D1B −0.94). Spot count alone is not an age signal.
+- 2026-11-18: White balance was AUTO, so colour ratios may drift; prefer ratios between separately lit frames over within-frame channel ratios.
+- 2026-11-18: The system Python (pyenv 3.12) has torch 2.12 globally, but the project must use `.venv` via uv. `python3` from another cwd may resolve to a different pyenv version: always use `uv run`.
+- 2026-11-18: Local models already on disk: Ollama (qwen3.5:9b, nemotron-3.5-bolt:e4b, embeddinggemma-2, qwen3-embedding:0.6b) and MLX Gemma-4 e2b/e4b 4-bit under `~/Library/Application Support/Tavys/models/mlx/`. Reuse them, do not download again.
+- 2026-11-18: Commit messages must never mention Claude/AI/agents (no Co-Authored-By or 'Generated with' lines).

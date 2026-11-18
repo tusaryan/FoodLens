@@ -221,3 +221,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---- FoodLens project ----
+.DS_Store
+experiment/
+data/
+models/*
+!models/README.md
+!models/**/model_card.md
+logs/
+*.pdf
+.ipynb_checkpoints/
