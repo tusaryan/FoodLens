@@ -20,3 +20,12 @@
 - 2026-11-18: Pillow `draft()` decodes the 16 MP JPEGs at 1/4 scale: ~55 ms/frame at work resolution vs several hundred ms for a full decode.
 - 2026-11-18: Weather (Open-Meteo archive, outdoor) gives 25.8–33.9 °C across sessions; D1A/D1B are almost flat (~33.5 °C). This is outdoor air, not room temperature (thermal.indoor_offset_c = 0).
 - 2026-11-18: pytest tmp_path contains the test name: never assert on substrings of absolute tmp paths (a test named "..._sorted_..." broke a "_sorted" check).
+- 2026-11-18: Plain 2-class Otsu on the lit channel keeps only the brightly lit half of the meat (the LED gradient). The lowest of 3 multi-Otsu thresholds (floored at 8) segments the whole lit surface.
+- 2026-11-18: Under BLUE the tray, holder and box walls are lit as brightly as the meat, so per-frame BLUE (and partly GREEN) masks leak into them (IoU vs session ROI 0.33–0.87). RED masks are stable (0.90–0.99), so build the session ROI from RED only.
+- 2026-11-18: The meat does not move within a session (RED mask IoU flat over 5.7 h in D3A), so one fixed session ROI per session is valid and keeps R/G/B pixels aligned within a triplet.
+- 2026-11-18: Holder/tray material has session-median BLUE/RED 1.5–3 vs meat 0.3–0.45. Remove high-ratio regions that touch the ROI edge only; interior bluish specks (glint streaks, the shadowed lower side in D1B) are meat.
+- 2026-11-18: A white top-hat inside a mask makes false glints at the mask's convex corners (bright meat vs dark box). Fill outside-ROI pixels with the ROI median before the top-hat.
+- 2026-11-18: On real frames the glint threshold always ends at glint.abs_min = 40 (median + 6·MAD of the top-hat is lower), so abs_min is the parameter that matters.
+- 2026-11-18: `foodlens roi` does not touch the manifest (it writes roi_index.parquet), so a roi --limit run needs no ingest/qc rerun; the full run overwrites the --limit index.
+- 2026-11-18: Synthetic meat lit equally in all channels has BLUE/RED ≈ 1 and trips the holder rule; tests use level=45 for BLUE frames (real ratio ~0.4).
+- 2026-11-18: tests/test_skeleton.py used to run every stub stage with the REAL config and `--limit 20 --force`; once `roi` was implemented it overwrote data/processed/roi_index.parquet. The stub test now uses a tmp config; still re-verify real outputs after check.sh.

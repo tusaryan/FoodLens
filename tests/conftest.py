@@ -24,10 +24,12 @@ def _make_meat_image(
     size: tuple[int, int] = (400, 300),
     glints: int = 10,
     seed: int = 0,
+    level: float = MEAT_LEVEL,
 ) -> np.ndarray:
     """Synthetic frame: dark background, bright ellipse in ``light``'s channel, saturated dots.
 
-    ``size`` is (width, height) in px. Returns an RGB uint8 array of shape (height, width, 3).
+    ``size`` is (width, height) in px; ``level`` is the meat brightness (0-255).
+    Returns an RGB uint8 array of shape (height, width, 3).
     """
     if light not in CHANNEL:
         raise ValueError(f"light must be one of {list(CHANNEL)}")
@@ -38,7 +40,7 @@ def _make_meat_image(
     cy, cx, ry, rx = h / 2, w / 2, h * 0.3, w * 0.3
     ellipse = ((yy - cy) / ry) ** 2 + ((xx - cx) / rx) ** 2 <= 1.0
     c = CHANNEL[light]
-    img[..., c][ellipse] = rng.normal(MEAT_LEVEL, NOISE_SD * 3, size=int(ellipse.sum()))
+    img[..., c][ellipse] = rng.normal(level, NOISE_SD * 3, size=int(ellipse.sum()))
     inside = np.argwhere(ellipse)
     for y, x in inside[rng.choice(len(inside), size=glints, replace=False)]:
         dot = (yy - y) ** 2 + (xx - x) ** 2 <= GLINT_RADIUS**2

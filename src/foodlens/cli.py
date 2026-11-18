@@ -67,8 +67,13 @@ def qc(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: boo
 
 @app.command()
 def roi(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: bool = ForceOpt):
-    """Segment the meat ROI and detect glints (P2)."""
-    _stub("roi", config, limit, force)
+    """Segment the meat ROI per frame, build session ROIs and channel crops (P2)."""
+    from foodlens.stages import run_roi
+
+    df = run_roi(load_config(config), limit, force)
+    typer.echo(f"roi ok: {int(df['roi_ok'].sum())}/{len(df)}")
+    typer.echo(f"roi reasons: {df['roi_reason'].replace('', 'none').value_counts().to_dict()}")
+    stage_done("roi", len(df))
 
 
 @app.command()

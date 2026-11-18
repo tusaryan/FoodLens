@@ -1,0 +1,6 @@
+session_id,sroi_area_frac,sroi_area_px,sroi_foreign_px,sroi_y0,sroi_x0,sroi_y1,sroi_x1,sroi_mask_path
+exp1_D1A,0.12362416585286458,97222,0,271,46,544,462,data/interim/roi/14df6d886b/session/exp1_D1A.png
+exp1_D1B,0.10933812459309895,85987,5231,263,111,564,496,data/interim/roi/14df6d886b/session/exp1_D1B.png
+exp2_D2A,0.16007359822591147,125887,10586,235,42,616,527,data/interim/roi/14df6d886b/session/exp2_D2A.png
+exp2_D2B,0.197509765625,155328,4692,239,140,756,558,data/interim/roi/14df6d886b/session/exp2_D2B.png
+exp2_D3A,0.23739115397135416,186692,11094,78,114,728,534,data/interim/roi/14df6d886b/session/exp2_D3A.png

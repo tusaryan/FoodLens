@@ -20,10 +20,10 @@ description: Conventions and exact algorithms for FoodLens image handling - mani
 
 ## ROI segmentation (`vision/roi.py`)
 1. Take the verified light's channel, Gaussian blur σ=2 px (at work resolution).
-2. Otsu threshold. Morphological close (disk r=7) then open (r=5). Fill holes.
+2. Multi-Otsu with `roi.otsu_classes` (3) classes; use the LOWEST threshold, floored at `roi.min_level` (S04: plain Otsu kept only the brightly lit half of the meat). Morphological close (disk r=7) then open (r=5). Fill holes.
 3. Keep the largest connected component. Reject if its area fraction is outside [`roi.min_frac`, `roi.max_frac`] (defaults 0.03, 0.8).
 4. Erode by `roi.erode_px` (default 6) to drop the edges/shadow rim (Paper 24 circular crop analogue).
-5. Session consistency: a frame's mask IoU vs the session median mask < 0.6 → flag. The median mask is computed from frames of the same session (all lights).
+5. Session ROI = per-pixel median of the masks of the `roi.ref_lights` frames (RED only; S04: GREEN/BLUE masks leak into the lit tray/holder), largest component. This ONE mask is the ROI for every frame of the session (all lights), so a triplet's R/G/B values come from the same pixels. Per-frame masks are kept for QC: a ref-light frame with IoU vs the session ROI < `roi.min_iou` → `W_ROI_LOW_IOU`.
 6. Save the mask PNG and the bbox. Unit test with a synthetic ellipse on a dark background plus noise.
 
 ## Glints (`vision/glints.py`), i.e. "bright spots"

@@ -21,7 +21,8 @@ E_MIXED_LIGHT = "E_MIXED_LIGHT"  # no single LED channel dominates (room light, 
 # ---- QC warning codes (frame kept, but flagged) ----
 W_LIGHT_MISMATCH = "W_LIGHT_MISMATCH"  # pixel light differs from the schedule light
 W_BLUR = "W_BLUR"  # Laplacian variance far below the session-light norm
-WARNING_CODES: frozenset[str] = frozenset({W_LIGHT_MISMATCH, W_BLUR})
+W_ROI_LOW_IOU = "W_ROI_LOW_IOU"  # reference-light frame mask IoU vs session ROI < roi.min_iou
+WARNING_CODES: frozenset[str] = frozenset({W_LIGHT_MISMATCH, W_BLUR, W_ROI_LOW_IOU})
 
 ALL_CODES: frozenset[str] = frozenset(
     {

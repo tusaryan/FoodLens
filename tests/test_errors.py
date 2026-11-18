@@ -57,5 +57,5 @@ def test_all_codes_listed():
     assert expected == errors.ALL_CODES
     for code in expected:
         assert getattr(errors, code) == code
-    assert {"W_LIGHT_MISMATCH", "W_BLUR"} == errors.WARNING_CODES
+    assert {"W_LIGHT_MISMATCH", "W_BLUR", "W_ROI_LOW_IOU"} == errors.WARNING_CODES
     assert not errors.WARNING_CODES & errors.ALL_CODES

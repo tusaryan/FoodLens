@@ -50,12 +50,18 @@ class QCConfig(_Section):
 
 class ROIConfig(_Section):
     blur_sigma: float = Field(gt=0)
+    otsu_classes: int = Field(ge=2, le=5)
+    min_level: float = Field(ge=0, le=255)
+    ref_lights: list[Literal["RED", "GREEN", "BLUE"]] = Field(min_length=1)
     close_r: int = Field(ge=0)
     open_r: int = Field(ge=0)
     min_frac: float = Field(gt=0, lt=1)
     max_frac: float = Field(gt=0, le=1)
     erode_px: int = Field(ge=0)
     min_iou: float = Field(ge=0, le=1)
+    foreign_max_blue_red: float = Field(gt=0)
+    foreign_min_area_px: int = Field(ge=1)
+    foreign_max_frames: int = Field(ge=1)
 
     @model_validator(mode="after")
     def _frac_order(self) -> ROIConfig:
@@ -70,6 +76,8 @@ class GlintConfig(_Section):
     abs_min: float = Field(ge=0, le=255)
     min_area_px: int = Field(ge=1)
     match_px: float = Field(gt=0)
+    merge_area_ratio: float = Field(gt=1)
+    sat_level: int = Field(ge=1, le=255)
 
 
 class VisionConfig(_Section):

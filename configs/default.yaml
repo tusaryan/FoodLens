@@ -41,12 +41,21 @@ qc:
 
 roi:
   blur_sigma: 2.0            # Gaussian sigma (px at work resolution) before Otsu
+  otsu_classes: 3            # multi-Otsu classes; the LOWEST threshold separates meat from the dark
+                             # box. Plain 2-class Otsu kept only the brightly lit half of the meat (S04)
+  min_level: 8.0             # threshold floor (0-255), = qc.min_signal; guards against Otsu splitting noise
+  ref_lights: [RED]          # lights whose per-frame masks build the session ROI (RED IoU 0.90-0.98 vs
+                             # reference; GREEN/BLUE masks leak into the lit tray/holder, S04)
   close_r: 7                 # morphological close disk radius (px)
   open_r: 5                  # morphological open disk radius (px)
   min_frac: 0.03             # minimum ROI area as a fraction of the frame
   max_frac: 0.8              # maximum ROI area as a fraction of the frame
   erode_px: 6                # erosion to drop edges / shadow rim (px)
   min_iou: 0.6               # mask IoU vs session median mask below this -> flag
+  foreign_max_blue_red: 1.0  # session-median BLUE/RED above this = non-meat material (holder/tray);
+                             # meat is 0.3-0.45 (S04). Only regions touching the ROI edge are removed
+  foreign_min_area_px: 50    # ignore smaller edge regions (px at work resolution)
+  foreign_max_frames: 15     # evenly spaced RED / BLUE frames per session for the median images
 
 glint:                       # glints = specular reflections of surface moisture (NOT bacteria)
   tophat_r: 9                # white top-hat disk radius (px at glint resolution)
@@ -54,6 +63,8 @@ glint:                       # glints = specular reflections of surface moisture
   abs_min: 40                # and at least this absolute value (0-255)
   min_area_px: 3             # minimum connected-component area (px)
   match_px: 6.0              # centroid distance for matching glints between frames (px, EDA only)
+  merge_area_ratio: 1.5      # merge/split: merged glint area >= this x the largest part (EDA only)
+  sat_level: 250             # pixel value (0-255) counted as saturated inside a glint (JPEG rarely hits 255)
 
 vision:
   work_long_side: 1024       # long side (px) for ROI and colour features

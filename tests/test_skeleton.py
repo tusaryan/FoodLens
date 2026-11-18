@@ -20,7 +20,7 @@ from foodlens.logging_utils import get_logger  # noqa: E402
 from foodlens.viz import LIGHT_COLORS, save_fig  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-IMPLEMENTED = {"ingest", "qc"}
+IMPLEMENTED = {"ingest", "qc", "roi"}
 STAGES = ["ingest", "qc", "roi", "features", "labels", "train", "evaluate", "predict", "eda-sheets"]
 
 
@@ -72,8 +72,10 @@ def test_cli_lists_all_stages():
 
 
 @pytest.mark.parametrize("stage", [s for s in STAGES if s not in IMPLEMENTED])
-def test_cli_stub_accepts_common_options(stage):
-    result = CliRunner().invoke(app, [stage, "--limit", "20", "--force"])
+def test_cli_stub_accepts_common_options(stage, tmp_path, write_tmp_config):
+    # tmp config: if a stage gets implemented but stays listed here, it cannot touch real data/
+    cfg = str(write_tmp_config(tmp_path))
+    result = CliRunner().invoke(app, [stage, "--config", cfg, "--limit", "20", "--force"])
     assert result.exit_code == 0
     assert "not implemented yet" in result.output
 
