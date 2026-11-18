@@ -17,6 +17,21 @@ location:                    # capture site, used for the weather-archive temper
   lon: 76.786
   tz: Asia/Kolkata
 
+capture:
+  light_order: [RED, GREEN, BLUE]   # LED cycle; schedule_light = light_order[seq_idx % len]
+  image_exts: [.jpg, .jpeg, .png]   # matched case-insensitively
+  ignore_dir_substr: _sorted        # folders whose name contains this are skipped (case-insensitive)
+  experiment_pattern: 'EXP-\d+'     # first path part matching -> experiment (EXP-1)
+  session_pattern: 'exp\d+_D\d+[A-Z]'  # folder name matching -> session_id (exp1_D1A)
+  filename_time_pattern: 'IMG_(\d{8}_\d{6})'  # fallback capture time from the file name
+  filename_time_format: '%Y%m%d_%H%M%S'
+
+temperature:
+  archive_url: https://archive-api.open-meteo.com/v1/archive  # hourly temperature_2m, rh_2m
+  timeout_s: 20              # network timeout per request (s)
+  retries: 2                 # extra attempts after the first failure
+  cache_subdir: cache/weather  # under paths.data_dir; JSON per lat/lon/date range
+
 qc:
   dark_p95: 3.0              # p95 of the max channel below this -> DARK frame (LED off)
   min_signal: 8.0            # pixels with max channel above this count as lit

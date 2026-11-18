@@ -12,3 +12,11 @@
 - 2026-11-18: `uv init --package` in an existing repo leaves README.md untouched but sets the script entry to `foodlens:main`; point it at `foodlens.cli:app`.
 - 2026-11-18: Config paths are relative to the repo root (parent of `configs/`); use `cfg.path("data_dir")`. `config_hash` excludes the root, so hashes are machine-independent.
 - 2026-11-18: Config sections use `extra="forbid"`: a typo in a YAML key raises `ConfigError` instead of being ignored.
+- 2026-11-18: P1 acceptance: the only pixel-vs-schedule mismatches are the 24 DARK D1A blue frames plus the 14:30 D1A room-lights frame, which the dominance rule already rejects as MIXED (dom_ratio well below 0.6). Valid-light mismatches: 0.
+- 2026-11-18: Real lit frames have dominance ratio 0.91–0.99, far above qc.dominance_ratio 0.6; the threshold is not sensitive.
+- 2026-11-18: exp2_D3A IMG_20260902_134133 (RED) is genuinely defocused (lap_var 2.6 vs median 11.7); it is only a W_BLUR warning. Decide in P2 whether to exclude it.
+- 2026-11-18: No raw frame has an EXIF Orientation tag; D2B/D3A are simply stored landscape. Still apply exif_transpose.
+- 2026-11-18: `foodlens ingest` rebuilds the manifest and drops QC columns, and `--limit 20` overwrites the full manifest. After any smoke run, rerun full `ingest` then `qc` (both are cached, ~20 s total).
+- 2026-11-18: Pillow `draft()` decodes the 16 MP JPEGs at 1/4 scale: ~55 ms/frame at work resolution vs several hundred ms for a full decode.
+- 2026-11-18: Weather (Open-Meteo archive, outdoor) gives 25.8–33.9 °C across sessions; D1A/D1B are almost flat (~33.5 °C). This is outdoor air, not room temperature (thermal.indoor_offset_c = 0).
+- 2026-11-18: pytest tmp_path contains the test name: never assert on substrings of absolute tmp paths (a test named "..._sorted_..." broke a "_sorted" check).

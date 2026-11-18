@@ -15,6 +15,13 @@ E_OOD = "E_OOD"  # input is out of the training distribution
 E_TEMP_UNAVAILABLE = "E_TEMP_UNAVAILABLE"  # ambient temperature could not be obtained
 E_MODEL_CAPABILITY = "E_MODEL_CAPABILITY"  # model cannot do what was asked
 E_CONFIG = "E_CONFIG"  # invalid or missing configuration
+E_NO_SESSION = "E_NO_SESSION"  # file is not inside a recognisable session folder
+E_MIXED_LIGHT = "E_MIXED_LIGHT"  # no single LED channel dominates (room light, mixed lights)
+
+# ---- QC warning codes (frame kept, but flagged) ----
+W_LIGHT_MISMATCH = "W_LIGHT_MISMATCH"  # pixel light differs from the schedule light
+W_BLUR = "W_BLUR"  # Laplacian variance far below the session-light norm
+WARNING_CODES: frozenset[str] = frozenset({W_LIGHT_MISMATCH, W_BLUR})
 
 ALL_CODES: frozenset[str] = frozenset(
     {
@@ -27,6 +34,8 @@ ALL_CODES: frozenset[str] = frozenset(
         E_TEMP_UNAVAILABLE,
         E_MODEL_CAPABILITY,
         E_CONFIG,
+        E_NO_SESSION,
+        E_MIXED_LIGHT,
     }
 )
 

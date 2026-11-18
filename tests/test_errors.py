@@ -51,7 +51,11 @@ def test_all_codes_listed():
         "E_TEMP_UNAVAILABLE",
         "E_MODEL_CAPABILITY",
         "E_CONFIG",
+        "E_NO_SESSION",
+        "E_MIXED_LIGHT",
     }
     assert expected == errors.ALL_CODES
     for code in expected:
         assert getattr(errors, code) == code
+    assert {"W_LIGHT_MISMATCH", "W_BLUR"} == errors.WARNING_CODES
+    assert not errors.WARNING_CODES & errors.ALL_CODES

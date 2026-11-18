@@ -81,6 +81,23 @@ class VisionConfig(_Section):
     lbp_r: int = Field(gt=0)
 
 
+class CaptureConfig(_Section):
+    light_order: list[Literal["RED", "GREEN", "BLUE"]] = Field(min_length=1)
+    image_exts: list[str] = Field(min_length=1)
+    ignore_dir_substr: str
+    experiment_pattern: str
+    session_pattern: str
+    filename_time_pattern: str
+    filename_time_format: str
+
+
+class TemperatureConfig(_Section):
+    archive_url: str
+    timeout_s: float = Field(gt=0)
+    retries: int = Field(ge=0)
+    cache_subdir: str
+
+
 class TripletConfig(_Section):
     max_span_s: float = Field(gt=0)
 
@@ -130,6 +147,8 @@ class Config(_Section):
     seed: int
     n_jobs: int
     location: LocationConfig
+    capture: CaptureConfig
+    temperature: TemperatureConfig
     qc: QCConfig
     roi: ROIConfig
     glint: GlintConfig
@@ -150,13 +169,16 @@ class Config(_Section):
 
 # ---- samples.yaml ----
 class TempSpec(_Section):
-    mode: Literal["weather", "fixed"]
-    value_c: float | None = None
+    mode: Literal["weather", "fixed", "log"]
+    value_c: float | None = None  # °C, used by mode 'fixed' (manual constant)
+    log_file: str | None = None  # CSV timestamp,temp_c[,rh], used by mode 'log' (repo-relative)
 
     @model_validator(mode="after")
-    def _fixed_needs_value(self) -> TempSpec:
+    def _mode_needs_value(self) -> TempSpec:
         if self.mode == "fixed" and self.value_c is None:
             raise ValueError("temp.mode 'fixed' needs temp.value_c (°C)")
+        if self.mode == "log" and not self.log_file:
+            raise ValueError("temp.mode 'log' needs temp.log_file")
         return self
 
 

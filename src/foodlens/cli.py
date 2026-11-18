@@ -1,7 +1,7 @@
 """``foodlens`` command-line interface (typer). One command per pipeline stage.
 
 Every stage takes ``--config``, ``--limit`` and ``--force``. An implemented stage must end by
-printing ``STAGE DONE <stage> rows=<n>``. In Phase P0 all stages are stubs.
+printing ``STAGE DONE <stage> rows=<n>``. Stages not yet implemented are stubs.
 """
 
 from __future__ import annotations
@@ -35,16 +35,34 @@ def _stub(stage: str, config: Path | None, limit: int | None, force: bool) -> No
     typer.echo(f"{stage}: not implemented yet (limit={limit}, force={force})")
 
 
+SkipTempOpt = typer.Option(
+    False, "--skip-temp", help="Do not look up the ambient temperature (offline smoke tests)."
+)
+
+
 @app.command()
-def ingest(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: bool = ForceOpt):
-    """Build the frame manifest from the raw sessions (P1)."""
-    _stub("ingest", config, limit, force)
+def ingest(
+    config: Path | None = ConfigOpt,
+    limit: int | None = LimitOpt,
+    force: bool = ForceOpt,
+    skip_temp: bool = SkipTempOpt,
+):
+    """Build the frame manifest (+ temperature per frame) from the raw sessions (P1)."""
+    from foodlens.stages import run_ingest
+
+    rows = run_ingest(load_config(config), limit, force, with_temp=not skip_temp)
+    stage_done("ingest", rows)
 
 
 @app.command()
 def qc(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: bool = ForceOpt):
-    """Verify lights and flag dark / scene-change / blurred frames (P1)."""
-    _stub("qc", config, limit, force)
+    """Verify lights and flag dark / mixed-light / blurred frames (P1)."""
+    from foodlens.stages import run_qc
+
+    df = run_qc(load_config(config), limit, force)
+    counts = df["qc_status"].value_counts().to_dict()
+    typer.echo(f"qc status counts: {counts}")
+    stage_done("qc", len(df))
 
 
 @app.command()

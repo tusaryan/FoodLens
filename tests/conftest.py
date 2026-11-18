@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import shutil
 from collections.abc import Callable
+from pathlib import Path
 
 import numpy as np
 import pytest
+import yaml
+
+REPO = Path(__file__).resolve().parents[1]
 
 CHANNEL = {"RED": 0, "GREEN": 1, "BLUE": 2}
 BG_LEVEL = 4  # dark-box background (0-255), similar to real frames
@@ -56,3 +61,27 @@ def make_meat_image() -> Callable[..., np.ndarray]:
 @pytest.fixture
 def make_dark_image() -> Callable[..., np.ndarray]:
     return _make_dark_image
+
+
+def _write_tmp_config(root: Path, sessions: dict | None = None, **overrides: dict) -> Path:
+    """Copy configs/default.yaml into ``root/configs`` (so relative paths resolve under ``root``).
+
+    ``sessions`` replaces samples.yaml sessions; ``overrides`` replace whole top-level sections.
+    """
+    cfg_dir = root / "configs"
+    cfg_dir.mkdir(parents=True, exist_ok=True)
+    data = yaml.safe_load((REPO / "configs" / "default.yaml").read_text())
+    data["n_jobs"] = 1
+    for key, value in overrides.items():
+        data[key] = {**data[key], **value} if isinstance(value, dict) else value
+    (cfg_dir / "default.yaml").write_text(yaml.safe_dump(data))
+    if sessions is None:
+        shutil.copy(REPO / "configs" / "samples.yaml", cfg_dir / "samples.yaml")
+    else:
+        (cfg_dir / "samples.yaml").write_text(yaml.safe_dump({"sessions": sessions}))
+    return cfg_dir / "default.yaml"
+
+
+@pytest.fixture
+def write_tmp_config() -> Callable[..., Path]:
+    return _write_tmp_config

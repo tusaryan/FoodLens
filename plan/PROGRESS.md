@@ -1,14 +1,16 @@
 # PROGRESS: single source of truth for "where are we"
 
 ## Current state (rewrite every session, 3–6 lines)
-- S01 (planning) and S02 (P0 foundation) done on 2026-11-18. The `foodlens` package skeleton, validated config (`configs/default.yaml`, `samples.yaml`), typer CLI stubs for all 9 stages, `scripts/check.sh` gate (PASS, 40 tests) exist. **No pipeline stage is implemented yet.**
-- Next: **P1 Ingest & QC** (`plan/phases/P1_ingest_qc.md`).
-- Blockers: data-team answers to `docs/04_DATA_COLLECTION_CHANGES.md` §D (meaning of D1/D2/D3, A/B, storage between sessions). P0–P4 can proceed without them; P5 labels need them (defaults are defined).
+- S03 (2026-11-18) finished **P1 Ingest & QC**: `foodlens ingest` builds `data/processed/manifest.parquet` (EXIF, sequence, schedule light, samples.yaml metadata, `temp_c`/`rh` from the Open-Meteo archive) and `foodlens qc` adds pixel-verified `light`, `qc_status`, `qc_reasons`. check.sh PASS (59 tests + notebook 01).
+- Real data: 944 frames, 919 usable (918 ok + 1 W_BLUR); 25 rejects, all exp1_D1A (24 DARK blue-slot + 1 MIXED room-lights frame at 14:30). Temperature 25.8–33.9 °C.
+- Run order matters: `ingest` rebuilds the manifest without QC columns, so always run `ingest` then `qc`.
+- Next: **P2 ROI & glints** (`plan/phases/P2_roi_glints.md`); P2.T4 adds scene-change QC (placeholder test skipped in `tests/test_qc.py`).
+- Blockers: data-team answers (docs/04 §D) still open; not needed until P5.
 
 ## Phase checklist
 - [x] Planning & research (S01)
 - [x] P0 Foundation: T1 [x] T2 [x] T3 [x] T4 [x] T5 [x] T6 [x] (S02)
-- [ ] P1 Ingest & QC: T1 [ ] T2 [ ] T3 [ ] T4 [ ] T5 [ ] T6 [ ]
+- [x] P1 Ingest & QC: T1 [x] T2 [x] T3 [x] T4 [x] T5 [x] T6 [x] (S03)
 - [ ] P2 ROI & glints: T1 [ ] T2 [ ] T3 [ ] T4 [ ] T5 [ ]
 - [ ] P3 EDA: T1 [ ] T2 [ ] T3 [ ] T4 [ ] T5 [ ] T6 [ ]
 - [ ] P4 Features: T1 [ ] T2 [ ] T3 [ ] T4 [ ]
@@ -21,7 +23,7 @@
 ## Key numbers (filled by code outputs; never by hand)
 | Metric | Value | Source file |
 |---|---|---|
-| Frames total / usable | 944 / ? | reports/tables/qc_summary.csv |
+| Frames total / usable | 944 / 919 | reports/tables/qc_summary.csv (TOTAL row, usable = ok + warn) |
 | Best grouped balanced accuracy (class) | ? | reports/metrics/… |
 | Best grouped MAE hours | ? | reports/metrics/… |
 
@@ -31,6 +33,11 @@
 3. Freshness class boundaries: default proposal in P5 (confirm with the mentor).
 
 ## Recent sessions (newest first; keep 5 in full)
+### S03: 2026-11-18: P1 Ingest & QC (Claude Opus)
+- Did: `io/exif.py`, `io/manifest.py` (sha1 cache, samples.yaml folder → session, rejects kept with codes), `io/images.py` (draft-mode loader), `io/inventory.py`, `qc/light_check.py`, `qc/frame_qc.py` (DARK/MIXED/W_LIGHT_MISMATCH/W_BLUR, stats cache), `io/temperature.py` (weather/fixed/log sources, JSON cache, offline error), `stages.py`, CLI ingest/qc, notebook 01, config sections `capture` + `temperature`, error codes E_NO_SESSION/E_MIXED_LIGHT/W_*.
+- Files: src/foodlens/{io,qc}/*, stages.py, cli.py, viz.py, errors.py, config.py, configs/*, tests/test_{manifest,qc,temperature,cli_stages}.py, notebooks/src/01_data_inventory.py, reports/{tables,figures}, plan/*.
+- Verified: full ingest (944 rows, ~5 s) + qc (~12 s); acceptance met (24 DARK in D1A only; mismatches = 24 DARK + 1 MIXED, explained); temp for all frames; check.sh PASS.
+- Next: P2.
 ### S02: 2026-11-18: P0 Foundation (Claude Opus)
 - Did: uv project (Python 3.12, deps from P0.T1, no torch), package layout per docs/03 §6 with docstring-only stage modules, `errors.py` (codes + typed errors), `logging_utils.py` (rich, `FOODLENS_LOG`), `viz.py`, pydantic `config.py` (`load_config`, `load_samples`, `config_hash`, `cfg.path()`), `configs/default.yaml` + `samples.yaml` (5 sessions, piece_id/storage_day/pre_age_h null), typer CLI stubs, check.sh + check_sizes.py + build_notebooks.sh + uninstall_global_tools.sh, synthetic-image fixtures and 40 tests.
 - Files: pyproject.toml, uv.lock, .python-version, src/foodlens/**, configs/*, scripts/*, tests/*, README.md, plan/*.
