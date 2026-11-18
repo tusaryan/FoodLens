@@ -65,3 +65,9 @@
 - 2026-11-18: (S08) Under leave-one-piece-out, the majority-class baseline scores BELOW chance (balanced acc ~0.08 vs 0.25): the held-out piece shifts the training majority. Report chance level next to it.
 - 2026-11-18: (S08) T_min -8 vs -10 °C changes equivalent hours by only 0.5-2.4 % here (label_summary.csv); the label is not sensitive to the unverified T_min.
 - 2026-11-18: (S08) pandas `.loc[...] = array` breaks on a non-unique index (concat of per-session frames); reset_index in label builders.
+- 2026-11-18: (S09) A Mahalanobis OOD threshold from IN-SAMPLE training distances (phase rule) flags 100 % of held-out pieces (~150 dims, pieces differ ~2x in brightness). Use the 99th percentile of leave-one-group-out distances INSIDE the training fold (`MahalanobisOOD(mode="grouped")`); keep reporting the in-sample rule next to it.
+- 2026-11-18: (S09) Sigmoid calibration with few groups can RAISE the ECE (smoke run 0.16 -> 0.21). Score both kinds out-of-fold and keep the calibrated classifier only if its grouped ECE is lower.
+- 2026-11-18: (S09) A leftover `@app.command() def train` stub plus the real `train` = two typer commands with one name (ruff F811). Delete the stub and move the stage to IMPLEMENTED in tests/test_skeleton.py.
+- 2026-11-18: (S09) Out-of-fold tables mixing regression (float y) and classification (str y) cannot be written to parquet: write one OOF file per task.
+- 2026-11-18: (S09) Permutation importance with a 500-tree RF: put all shuffles of one feature in ONE predict call and set the fitted forest's n_jobs to all cores (it is fitted single-threaded inside GridSearchCV); 10x faster.
+- 2026-11-18: (S09) Nested tuning needs the TRAINING rows' groups at fit time: models with `uses_groups = True` get `groups=groups[train]` from `evaluation.cv.oof_predict`; a spy-estimator test proves the test group is never passed.

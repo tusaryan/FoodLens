@@ -15,6 +15,7 @@ from typing import Literal
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
+from foodlens.config_models import ModelsConfig, TrainConfig
 from foodlens.errors import ConfigError
 from foodlens.samples_config import SamplesConfig, SessionSpec, TempSpec
 
@@ -234,6 +235,8 @@ class Config(_Section):
     labels: LabelsConfig
     thermal: ThermalConfig
     evaluation: EvaluationConfig
+    models: ModelsConfig
+    train: TrainConfig
     root: Path = Field(default=REPO_ROOT, exclude=True)
 
     def path(self, key: str) -> Path:

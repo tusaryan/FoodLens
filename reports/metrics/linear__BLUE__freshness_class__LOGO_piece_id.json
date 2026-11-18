@@ -1,0 +1,133 @@
+{
+  "ci": {
+    "balanced_accuracy": [
+      0.3762581400805234,
+      0.6298529287029458
+    ],
+    "macro_f1": [
+      0.31433957347821684,
+      0.5143047674231249
+    ]
+  },
+  "config_hash": "a5ccdb3cd0",
+  "cv_scheme": "LOGO_piece_id",
+  "feature_set": [
+    "roi_median__BLUE",
+    "roi_p10__BLUE",
+    "roi_p25__BLUE",
+    "roi_p75__BLUE",
+    "roi_p90__BLUE",
+    "roi_iqr__BLUE",
+    "roi_mean__BLUE",
+    "roi_std__BLUE",
+    "roi_sat_frac__BLUE",
+    "full_median__BLUE",
+    "full_mean__BLUE",
+    "roi_cv__BLUE",
+    "roi_iqr_rel__BLUE",
+    "roi_mean_rel_ref__BLUE",
+    "glint_density__BLUE",
+    "glint_area_frac__BLUE",
+    "glint_size_p50__BLUE",
+    "glint_size_p90__BLUE",
+    "glint_size_max__BLUE",
+    "glint_ecc_mean__BLUE",
+    "glint_sat_frac__BLUE",
+    "glint_brightness_median__BLUE",
+    "glint_brightness_rel__BLUE",
+    "glintabs_density__BLUE",
+    "glintabs_area_frac__BLUE",
+    "glintabs_size_p50__BLUE",
+    "glintabs_size_p90__BLUE",
+    "glintabs_size_max__BLUE",
+    "glintabs_ecc_mean__BLUE",
+    "glintabs_sat_frac__BLUE",
+    "glintabs_brightness_median__BLUE",
+    "glcm_contrast__BLUE",
+    "glcm_homogeneity__BLUE",
+    "glcm_energy__BLUE",
+    "glcm_correlation__BLUE",
+    "lbp_0__BLUE",
+    "lbp_1__BLUE",
+    "lbp_2__BLUE",
+    "lbp_3__BLUE",
+    "lbp_4__BLUE",
+    "lbp_5__BLUE",
+    "lbp_6__BLUE",
+    "lbp_7__BLUE",
+    "lbp_8__BLUE",
+    "lbp_9__BLUE",
+    "lbp_entropy__BLUE"
+  ],
+  "git_commit": "86e99f30c8deb4067a7baadc2ff349d3dbef440b",
+  "group_col": "piece_id",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "balanced_accuracy": 0.46001737632305667,
+    "brier": 0.8357848364430535,
+    "classes": [
+      "fresh",
+      "use_soon",
+      "quality_loss",
+      "spoiled_risk"
+    ],
+    "confusion_matrix": [
+      [
+        189,
+        43,
+        0,
+        1
+      ],
+      [
+        194,
+        96,
+        12,
+        58
+      ],
+      [
+        1,
+        47,
+        18,
+        190
+      ],
+      [
+        0,
+        80,
+        46,
+        283
+      ]
+    ],
+    "ece": 0.30809669402701295,
+    "macro_f1": 0.40731814857726023,
+    "per_class": {
+      "fresh": {
+        "precision": 0.4921875,
+        "recall": 0.8111587982832618,
+        "support": 233
+      },
+      "quality_loss": {
+        "precision": 0.23684210526315788,
+        "recall": 0.0703125,
+        "support": 256
+      },
+      "spoiled_risk": {
+        "precision": 0.5319548872180451,
+        "recall": 0.6919315403422983,
+        "support": 409
+      },
+      "use_soon": {
+        "precision": 0.3609022556390977,
+        "recall": 0.26666666666666666,
+        "support": 360
+      }
+    }
+  },
+  "model": "linear__BLUE",
+  "n_groups": 9,
+  "n_samples": 1258,
+  "notes": "linear (nested grouped tuning) on feature set BLUE (46 columns)",
+  "permutation": {},
+  "run_id": "linear__BLUE__freshness_class__LOGO_piece_id",
+  "target": "freshness_class",
+  "task": "classification"
+}

@@ -115,18 +115,30 @@ def _report_row(rep: RunReport, res: dict, task: str, scheme: str) -> dict:
             "ci_lo": lo, "ci_hi": hi, "p_value": perm.get("p_value", np.nan)}  # fmt: skip
 
 
-def run_model(spec, df: pd.DataFrame, cfg: Config, common: dict) -> list[dict]:
-    """All tasks x schemes of one model spec; writes one RunReport JSON per run."""
+def run_model(spec, df: pd.DataFrame, cfg: Config, common: dict, select: dict | None = None,
+              oof_sink: list | None = None) -> list[dict]:  # fmt: skip
+    """All tasks x schemes of one model spec; writes one RunReport JSON per run.
+
+    ``select`` (P6 experiments) may hold ``targets`` / ``schemes`` lists to restrict the runs,
+    ``permute`` (bool, headline grouping only) and ``n_permutations``. ``oof_sink`` collects the
+    out-of-fold predictions (with run_id / model / target / scheme columns)."""
+    sel = select or {}
     rows = []
     for task, target in _tasks(cfg):
+        if sel.get("targets") and target not in sel["targets"]:
+            continue
         for scheme, gcol, d, permute in _schemes(df, cfg):
+            if sel.get("schemes") and scheme not in sel["schemes"]:
+                continue
+            permute = permute and sel.get("permute", True)
             groups = get_groups(d, cfg, [gcol])
             if scheme.startswith("temporal"):
                 splits = temporal_holdout_splits(d, cfg)
             else:
                 splits = logo_splits(groups)
                 assert_no_group_overlap(splits, groups)
-            res = evaluate(spec.make, task, d, spec.features, target, groups, splits, cfg, permute)
+            res = evaluate(spec.make, task, d, spec.features, target, groups, splits, cfg,
+                           permute, sel.get("n_permutations"))  # fmt: skip
             rep = RunReport(
                 run_id=f"{spec.name}__{target}__{scheme}", model=spec.name, target=target,
                 task=task, cv_scheme=scheme, group_col=gcol, n_groups=len(np.unique(groups)),
@@ -136,7 +148,27 @@ def run_model(spec, df: pd.DataFrame, cfg: Config, common: dict) -> list[dict]:
             )  # fmt: skip
             rep.save(cfg.path("reports_dir") / "metrics")
             rows.append(_report_row(rep, res, task, scheme))
+            if oof_sink is not None:
+                oof_sink.append(res["oof"].assign(run_id=rep.run_id, model=spec.name,
+                                                  target=target, scheme=scheme))  # fmt: skip
             log.info("%s: %s = %.3f", rep.run_id, rows[-1]["metric"], rows[-1]["value"])
+    return rows
+
+
+def update_comparison(rows: pd.DataFrame, cfg: Config) -> pd.DataFrame:
+    """Merge ``rows`` into ``tables/model_comparison.csv`` (other runs' rows are kept), sorted by
+    task, scheme and the grouped metric (best first)."""
+    if not len(rows):
+        return rows
+    path = tables_dir(cfg) / "model_comparison.csv"
+    table = rows
+    if path.is_file():
+        old = pd.read_csv(path)
+        table = pd.concat([old[~old["run_id"].isin(rows["run_id"])], rows], ignore_index=True)
+    better = table["task"].map(lambda t: HEADLINE[t][1])
+    table = table.assign(_k=np.where(better, -table["value"], table["value"]))
+    table = table.sort_values(["task", "target", "scheme", "_k"]).drop(columns="_k")
+    table.to_csv(path, index=False)
     return rows
 
 
@@ -159,13 +191,7 @@ def run_evaluate(cfg: Config, model_pattern: str, limit: int | None) -> pd.DataF
     if not specs and not demo:
         raise ConfigError(f"no model matches {model_pattern!r}")
     rows = [r for s in specs.values() for r in run_model(s, df, cfg, common)]
-    table = pd.DataFrame(rows)
-    if len(table):
-        path = tables_dir(cfg) / "model_comparison.csv"
-        old = pd.read_csv(path) if path.is_file() else None
-        if old is not None:  # keep other models' rows (P6 appends its own)
-            table = pd.concat([old[~old["run_id"].isin(table["run_id"])], table], ignore_index=True)
-        table.to_csv(path, index=False)
+    table = update_comparison(pd.DataFrame(rows), cfg)
     if demo:
         feats = single_shot_features(cfg)
         groups = get_groups(df, cfg, [cfg.evaluation.group_cols[0]])

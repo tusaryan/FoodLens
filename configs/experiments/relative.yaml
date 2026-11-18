@@ -1,0 +1,12 @@
+# P6.T2.4: single-shot (absolute) vs session-normalised (__rel, needs the session's first photo)
+# features: shows how much a per-capture calibration reference (grey card) could be worth.
+name: relative
+description: single-shot vs session-normalised (first-photo) features
+models: [linear, rf, hgb, svm]
+feature_sets: [RGB_all, relative, single_shot+relative]
+targets: [equiv_hours_25C, freshness_class]
+schemes: [LOGO_piece_id]
+permute: false
+paired: true
+reference_set: RGB_all
+table: relative_vs_single_shot

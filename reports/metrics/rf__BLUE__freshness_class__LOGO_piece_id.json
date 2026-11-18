@@ -1,0 +1,133 @@
+{
+  "ci": {
+    "balanced_accuracy": [
+      0.2744034151731406,
+      0.5632472444306876
+    ],
+    "macro_f1": [
+      0.20767359817636863,
+      0.4883796060400811
+    ]
+  },
+  "config_hash": "a5ccdb3cd0",
+  "cv_scheme": "LOGO_piece_id",
+  "feature_set": [
+    "roi_median__BLUE",
+    "roi_p10__BLUE",
+    "roi_p25__BLUE",
+    "roi_p75__BLUE",
+    "roi_p90__BLUE",
+    "roi_iqr__BLUE",
+    "roi_mean__BLUE",
+    "roi_std__BLUE",
+    "roi_sat_frac__BLUE",
+    "full_median__BLUE",
+    "full_mean__BLUE",
+    "roi_cv__BLUE",
+    "roi_iqr_rel__BLUE",
+    "roi_mean_rel_ref__BLUE",
+    "glint_density__BLUE",
+    "glint_area_frac__BLUE",
+    "glint_size_p50__BLUE",
+    "glint_size_p90__BLUE",
+    "glint_size_max__BLUE",
+    "glint_ecc_mean__BLUE",
+    "glint_sat_frac__BLUE",
+    "glint_brightness_median__BLUE",
+    "glint_brightness_rel__BLUE",
+    "glintabs_density__BLUE",
+    "glintabs_area_frac__BLUE",
+    "glintabs_size_p50__BLUE",
+    "glintabs_size_p90__BLUE",
+    "glintabs_size_max__BLUE",
+    "glintabs_ecc_mean__BLUE",
+    "glintabs_sat_frac__BLUE",
+    "glintabs_brightness_median__BLUE",
+    "glcm_contrast__BLUE",
+    "glcm_homogeneity__BLUE",
+    "glcm_energy__BLUE",
+    "glcm_correlation__BLUE",
+    "lbp_0__BLUE",
+    "lbp_1__BLUE",
+    "lbp_2__BLUE",
+    "lbp_3__BLUE",
+    "lbp_4__BLUE",
+    "lbp_5__BLUE",
+    "lbp_6__BLUE",
+    "lbp_7__BLUE",
+    "lbp_8__BLUE",
+    "lbp_9__BLUE",
+    "lbp_entropy__BLUE"
+  ],
+  "git_commit": "86e99f30c8deb4067a7baadc2ff349d3dbef440b",
+  "group_col": "piece_id",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "balanced_accuracy": 0.38753768577338044,
+    "brier": 0.7298439227888465,
+    "classes": [
+      "fresh",
+      "use_soon",
+      "quality_loss",
+      "spoiled_risk"
+    ],
+    "confusion_matrix": [
+      [
+        176,
+        57,
+        0,
+        0
+      ],
+      [
+        173,
+        114,
+        63,
+        10
+      ],
+      [
+        4,
+        118,
+        21,
+        113
+      ],
+      [
+        0,
+        50,
+        197,
+        162
+      ]
+    ],
+    "ece": 0.17893955835605407,
+    "macro_f1": 0.3679834828738846,
+    "per_class": {
+      "fresh": {
+        "precision": 0.4985835694050991,
+        "recall": 0.7553648068669528,
+        "support": 233
+      },
+      "quality_loss": {
+        "precision": 0.07473309608540925,
+        "recall": 0.08203125,
+        "support": 256
+      },
+      "spoiled_risk": {
+        "precision": 0.5684210526315789,
+        "recall": 0.3960880195599022,
+        "support": 409
+      },
+      "use_soon": {
+        "precision": 0.336283185840708,
+        "recall": 0.31666666666666665,
+        "support": 360
+      }
+    }
+  },
+  "model": "rf__BLUE",
+  "n_groups": 9,
+  "n_samples": 1258,
+  "notes": "rf (nested grouped tuning) on feature set BLUE (46 columns)",
+  "permutation": {},
+  "run_id": "rf__BLUE__freshness_class__LOGO_piece_id",
+  "target": "freshness_class",
+  "task": "classification"
+}

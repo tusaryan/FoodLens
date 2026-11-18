@@ -1,0 +1,10 @@
+# P6.T2: every zoo model on all single-shot features, all targets and CV schemes.
+name: model_zoo
+description: model zoo on all single-shot features (RGB_all), every target and CV scheme
+models: [linear, rf, hgb, svm]
+feature_sets: [RGB_all]
+targets: [equiv_hours_25C, hours_since_start, freshness_class]
+schemes: [LOGO_piece_id, LOGO_experiment, temporal_60_40, LOGO_piece_id_no_post_step]
+permute: false             # permutation test of the SELECTED model only (train.n_permutations; P6.T5)
+paired: false
+table: model_zoo

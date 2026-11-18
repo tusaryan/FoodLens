@@ -189,3 +189,51 @@ evaluation:                  # P5 harness (`foodlens evaluate`)
   step_sensitivity_sessions: [exp2_D2A]  # sessions whose scene step changes the MEAT features (camera
                              # colour balance, S05/S06): post-step triplets get `post_step` and a
                              # sensitivity run without them. exp5's steps are tray-only (S07): not listed.
+
+models:                      # P6 classical model zoo (`foodlens train`, models/classical.py)
+  zoo: [linear, rf, hgb, svm]  # simplest first: the order breaks ties in the selection rule
+                             # (lightgbm is optional in P6 and not installed: HGB is the same model family)
+  variance_threshold: 1.0e-10  # drop (near-)constant columns of the training fold
+  max_grid_combos: 12        # phase rule: <= 12 combinations per grid
+  linear_max_iter: 5000      # lbfgs iterations (convergence, not tuned)
+  rf_n_estimators: 500       # phase spec
+  svc_probability: true      # Platt probabilities (internal 5-fold on the TRAINING rows only)
+  grids:                     # keys are Pipeline params; `select__k` = SelectKBest inside the fold
+    linear:                  # Ridge (regression) / L2 LogisticRegression, class_weight balanced
+      regression: {model__alpha: [0.1, 1.0, 10.0, 100.0], select__k: [all, 20, 50]}
+      classification: {model__C: [0.01, 0.1, 1.0, 10.0], select__k: [all, 20, 50]}
+      defaults_regression: {model__alpha: 10.0, select__k: all}
+      defaults_classification: {model__C: 0.1, select__k: all}
+    rf:                      # n_estimators 500, min_samples_leaf 3 (phase spec) + max_features grid
+      regression: {model__max_features: [sqrt, 0.3], model__min_samples_leaf: [3, 10]}
+      classification: {model__max_features: [sqrt, 0.3], model__min_samples_leaf: [3, 10]}
+      defaults_regression: {model__max_features: sqrt, model__min_samples_leaf: 3}
+      defaults_classification: {model__max_features: sqrt, model__min_samples_leaf: 3}
+    hgb:                     # max_depth 3, learning_rate 0.05, l2 1.0 (phase spec)
+      regression: {model__max_iter: [100, 300], model__min_samples_leaf: [20, 50]}
+      classification: {model__max_iter: [100, 300], model__min_samples_leaf: [20, 50]}
+      defaults_regression: {model__max_depth: 3, model__learning_rate: 0.05, model__l2_regularization: 1.0, model__max_iter: 100, model__min_samples_leaf: 20}
+      defaults_classification: {model__max_depth: 3, model__learning_rate: 0.05, model__l2_regularization: 1.0, model__max_iter: 100, model__min_samples_leaf: 20}
+    svm:                     # RBF SVR / SVC (class_weight balanced)
+      regression: {model__C: [0.3, 3.0, 30.0], model__gamma: [scale, 0.003]}
+      classification: {model__C: [0.3, 3.0, 30.0], model__gamma: [scale, 0.003]}
+      defaults_regression: {model__C: 3.0, model__gamma: scale}
+      defaults_classification: {model__C: 3.0, model__gamma: scale}
+
+train:                       # P6 experiments (`foodlens train --experiment <name>`)
+  experiments_dir: configs/experiments
+  n_permutations: 100        # grouped permutation reps for TUNED models: every rep re-runs the full
+                             # nested CV, so 1000 (baselines) is too slow; min p = 1/101 ≈ 0.01
+  calibration_method: sigmoid
+  ood_percentile: 99.0       # OOD threshold = 99th percentile of the training-fold distances
+  importance_repeats: 10     # shuffles per feature (group) per held-out fold
+  importance_top_n: 20
+  pdp_top_k: 3
+  pdp_grid: 20
+  final_model_name: foodlens_spoil_v1
+  selection:                 # P6.T5 rule, fixed in S09 BEFORE any P6 result was seen
+    metric: balanced_accuracy  # freshness class task
+    scheme: LOGO_piece_id    # headline grouping
+    feature_set: RGB_all     # candidates = the model-zoo runs (all single-shot features)
+    baseline_models: [baseline_mean, baseline_red_median, baseline_glint_count]  # single-shot baselines
+    tie_tol: 0.02            # balanced accuracy within 0.02 of the best = tie -> simpler model

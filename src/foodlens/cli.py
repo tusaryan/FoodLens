@@ -116,12 +116,6 @@ def labels(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force:
 
 
 @app.command()
-def train(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: bool = ForceOpt):
-    """Train models under grouped CV (P6)."""
-    _stub("train", config, limit, force)
-
-
-@app.command()
 def evaluate(
     config: Path | None = ConfigOpt,
     limit: int | None = LimitOpt,
@@ -189,10 +183,6 @@ def eda_sample(
     stage_done("eda-sample", len(df))
 
 
-if __name__ == "__main__":
-    app()
-
-
 @app.command()
 def crops(
     config: Path | None = ConfigOpt,
@@ -212,3 +202,40 @@ def crops(
     ok = int((index["crop_reason"] == "").sum())
     typer.echo(f"crops: {ok} ok, {len(index) - ok} rejected")
     stage_done("crops", ok)
+
+
+@app.command()
+def train(
+    config: Path | None = ConfigOpt,
+    limit: int | None = LimitOpt,
+    force: bool = ForceOpt,
+    experiment: str = typer.Option(..., "--experiment", help="configs/experiments/<name>.yaml"),
+):
+    """Run one P6 experiment (models x feature sets x targets x CV schemes), nested grouped
+    tuning inside each training fold. ``--limit`` = rows per session (smoke test)."""
+    from foodlens.models.train import run_experiment
+
+    table = run_experiment(load_config(config), experiment, limit)
+    typer.echo(table[["run_id", "metric", "value", "ci_lo", "ci_hi"]].to_string(index=False))
+    stage_done(f"train {experiment}", len(table))
+
+
+@app.command()
+def finalize(
+    config: Path | None = ConfigOpt,
+    limit: int | None = LimitOpt,
+    force: bool = ForceOpt,
+    permute: bool = typer.Option(True, help="Grouped permutation test of the selected model."),
+):
+    """P6.T3-T5: apply the selection rule, permutation-test, calibrate + OOD, interpret and save
+    the final model (needs `foodlens evaluate` and the model_zoo / light_ablation experiments)."""
+    from foodlens.models.finalize import run_finalize
+
+    dec = run_finalize(load_config(config), limit, permute)
+    typer.echo(f"selected {dec['model']}: {dec['metric']} = {dec['value']:.3f} "
+               f"{dec['ci']} meets rule: {dec['meets_rule']}")  # fmt: skip
+    stage_done("finalize", 1)
+
+
+if __name__ == "__main__":
+    app()

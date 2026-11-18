@@ -1,0 +1,81 @@
+{
+  "ci": {
+    "mae": [
+      1.7706872783876915,
+      7.295142140499016
+    ],
+    "rmse": [
+      2.150060277503493,
+      9.000873089161496
+    ],
+    "spearman": [
+      0.21428551378072244,
+      0.8933958640014588
+    ]
+  },
+  "config_hash": "a5ccdb3cd0",
+  "cv_scheme": "LOGO_piece_id",
+  "feature_set": [
+    "roi_median__RED",
+    "roi_median__GREEN",
+    "roi_median__BLUE",
+    "roi_p10__RED",
+    "roi_p10__GREEN",
+    "roi_p10__BLUE",
+    "roi_p25__RED",
+    "roi_p25__GREEN",
+    "roi_p25__BLUE",
+    "roi_p75__RED",
+    "roi_p75__GREEN",
+    "roi_p75__BLUE",
+    "roi_p90__RED",
+    "roi_p90__GREEN",
+    "roi_p90__BLUE",
+    "roi_iqr__RED",
+    "roi_iqr__GREEN",
+    "roi_iqr__BLUE",
+    "roi_mean__RED",
+    "roi_mean__GREEN",
+    "roi_mean__BLUE",
+    "roi_std__RED",
+    "roi_std__GREEN",
+    "roi_std__BLUE",
+    "roi_sat_frac__RED",
+    "roi_sat_frac__GREEN",
+    "roi_sat_frac__BLUE",
+    "full_median__RED",
+    "full_median__GREEN",
+    "full_median__BLUE",
+    "full_mean__RED",
+    "full_mean__GREEN",
+    "full_mean__BLUE"
+  ],
+  "git_commit": "86e99f30c8deb4067a7baadc2ff349d3dbef440b",
+  "group_col": "piece_id",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "mae": 5.70405889324628,
+    "per_group_mae": {
+      "exp1_D1A": 0.818045742271863,
+      "exp1_D1B": 1.994430592468899,
+      "exp2_D1A": 1.3643259578073865,
+      "exp2_D2A": 5.5192623700250465,
+      "exp2_D2B": 0.7817683421288463,
+      "exp2_D3A": 1.8724475850456703,
+      "exp2_D4A": 1.9822088340567052,
+      "exp4_D1A": 8.575283546948334,
+      "exp5_D1A": 6.724838892826736
+    },
+    "r2": -0.18951025410858202,
+    "rmse": 7.467703977435752,
+    "spearman": 0.6938054169878715
+  },
+  "model": "hgb__intensity",
+  "n_groups": 9,
+  "n_samples": 1258,
+  "notes": "hgb (nested grouped tuning) on feature set intensity (33 columns)",
+  "permutation": {},
+  "run_id": "hgb__intensity__equiv_hours_25C__LOGO_piece_id",
+  "target": "equiv_hours_25C",
+  "task": "regression"
+}

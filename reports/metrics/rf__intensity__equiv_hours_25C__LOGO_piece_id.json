@@ -1,0 +1,81 @@
+{
+  "ci": {
+    "mae": [
+      1.5747712251790862,
+      7.356999270468468
+    ],
+    "rmse": [
+      2.0175191382729136,
+      9.09372315708969
+    ],
+    "spearman": [
+      0.15413010700337382,
+      0.8350690323231792
+    ]
+  },
+  "config_hash": "a5ccdb3cd0",
+  "cv_scheme": "LOGO_piece_id",
+  "feature_set": [
+    "roi_median__RED",
+    "roi_median__GREEN",
+    "roi_median__BLUE",
+    "roi_p10__RED",
+    "roi_p10__GREEN",
+    "roi_p10__BLUE",
+    "roi_p25__RED",
+    "roi_p25__GREEN",
+    "roi_p25__BLUE",
+    "roi_p75__RED",
+    "roi_p75__GREEN",
+    "roi_p75__BLUE",
+    "roi_p90__RED",
+    "roi_p90__GREEN",
+    "roi_p90__BLUE",
+    "roi_iqr__RED",
+    "roi_iqr__GREEN",
+    "roi_iqr__BLUE",
+    "roi_mean__RED",
+    "roi_mean__GREEN",
+    "roi_mean__BLUE",
+    "roi_std__RED",
+    "roi_std__GREEN",
+    "roi_std__BLUE",
+    "roi_sat_frac__RED",
+    "roi_sat_frac__GREEN",
+    "roi_sat_frac__BLUE",
+    "full_median__RED",
+    "full_median__GREEN",
+    "full_median__BLUE",
+    "full_mean__RED",
+    "full_mean__GREEN",
+    "full_mean__BLUE"
+  ],
+  "git_commit": "86e99f30c8deb4067a7baadc2ff349d3dbef440b",
+  "group_col": "piece_id",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "mae": 5.61496502255872,
+    "per_group_mae": {
+      "exp1_D1A": 0.6510977820050277,
+      "exp1_D1B": 1.8987959298258739,
+      "exp2_D1A": 1.387313531368037,
+      "exp2_D2A": 4.662187676930513,
+      "exp2_D2B": 0.8167952922690663,
+      "exp2_D3A": 1.2921364806798588,
+      "exp2_D4A": 2.125266930884762,
+      "exp4_D1A": 8.76892684879881,
+      "exp5_D1A": 6.463934783300869
+    },
+    "r2": -0.1602944831066504,
+    "rmse": 7.375426044438586,
+    "spearman": 0.6287959288182533
+  },
+  "model": "rf__intensity",
+  "n_groups": 9,
+  "n_samples": 1258,
+  "notes": "rf (nested grouped tuning) on feature set intensity (33 columns)",
+  "permutation": {},
+  "run_id": "rf__intensity__equiv_hours_25C__LOGO_piece_id",
+  "target": "equiv_hours_25C",
+  "task": "regression"
+}

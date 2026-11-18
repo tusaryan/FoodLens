@@ -49,12 +49,18 @@ def logo_splits(groups: np.ndarray) -> Splits:
 def nested_inner_splits(train_groups: np.ndarray, cfg: Config) -> Splits | None:
     """Inner GroupKFold over the training fold's groups (indices relative to the fold), or None
     if it has fewer than ``cv.min_groups_for_tuning`` groups (use a fixed default config)."""
+    return inner_group_kfold(train_groups, cfg.cv.inner_splits, cfg.cv.min_groups_for_tuning)
+
+
+def inner_group_kfold(train_groups: np.ndarray, n_splits: int, min_groups: int) -> Splits | None:
+    """GroupKFold with ``min(n_splits, n_groups)`` folds, or None below ``min_groups`` groups.
+    Used by ``nested_inner_splits`` and the tuned models of ``models.classical``."""
     n = len(np.unique(train_groups))
-    if n < cfg.cv.min_groups_for_tuning:
+    if n < min_groups:
         return None
-    k = min(cfg.cv.inner_splits, n)
     x = np.zeros(len(train_groups))
-    return [(tr, te) for tr, te in GroupKFold(n_splits=k).split(x, groups=train_groups)]
+    gkf = GroupKFold(n_splits=min(n_splits, n))
+    return [(tr, te) for tr, te in gkf.split(x, groups=train_groups)]
 
 
 def temporal_holdout_splits(

@@ -1,0 +1,12 @@
+# P6.T2.1 (core question, user S06): which light predicts best? Same folds, targets and recipe
+# per light; only the illuminating LED(s) differ. Paired comparison per held-out piece.
+name: light_ablation
+description: light ablation RED/GREEN/BLUE/pairs/all x model, paired per held-out piece
+models: [linear, rf, hgb, svm]
+feature_sets: [RED, GREEN, BLUE, RG, RB, GB, RGB_all]
+targets: [equiv_hours_25C, freshness_class]
+schemes: [LOGO_piece_id]
+permute: false
+paired: true
+reference_set: RGB_all
+table: light_ablation

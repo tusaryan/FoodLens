@@ -1,11 +1,11 @@
 # PROGRESS: single source of truth for "where are we"
 
 ## Current state (rewrite every session, 3–6 lines)
-- S08 (2026-11-18) finished **P5** (T1–T5): labels (`foodlens labels`, 9 sessions / 1305 triplets; exp3_D1A excluded by user decision), grouped splitters, metrics + group bootstrap + grouped permutation test, RunReport JSONs, 4 baselines, leakage demo. check.sh PASS (141 tests).
-- Labels: 4 freshness levels by equivalent hours at 25 °C (2 / 6 / 12 h, config); every session = own piece; `continues:` in samples.yaml re-groups a piece with no code change. Headline CV = leave-one-piece-out (9 groups), sensitivity = leave-one-experiment-out (4 groups).
-- Results (`reports/tables/model_comparison.csv`, `leakage_demo.csv`): best single-shot baseline = RED median, MAE 5.7 h vs 6.6 h for the mean; all-feature RF (grouped) MAE 4.4 h, bal. acc 0.35 (chance 0.25). LEAKY random split: 0.17 h / 0.98 = the leakage demo.
-- New `foodlens crops`: meat-only crops (lit + shadow, background 0) of all 4817 frames for P7 + visual review (12 new frames, all clean).
-- Next: **P6** classical models on the P5 harness (`foodlens evaluate`). Carry-over: refresh P3 outputs on 10 sessions with triplet ROIs.
+- S09 (2026-11-19) finished **P6** (T1–T5): model zoo with nested grouped tuning (`models/classical.py`), `foodlens train --experiment` (model_zoo, light_ablation, feature_groups, relative), `foodlens finalize` (selection rule, permutation test, calibration + OOD, importance, PDP, final model + card). check.sh PASS (152 tests).
+- Headline (pre-registered rule): linear on all 153 single-shot features, LOGO piece: balanced acc 0.313 [0.227, 0.503], **perm. p = 0.23 (not reliably above chance)**; MAE 4.16 h vs 5.66 h RED baseline (CIs overlap). docs/08 states this honestly vs the 94 % target.
+- Core question answered: **BLUE is the most informative light, RED the least** (paired: BLUE > all-lights on 7/9 pieces; BLUE meat darkens while the reference stays flat). Exploratory (winner's curse): confirm on new sessions.
+- Session-relative (first-photo) features reach 0.42–0.51: the piece-to-piece offset is the main obstacle → grey card + more long same-setup sessions.
+- Next: **P7** deep features on the meat-only crops (or P8 if skipped). Carry-over: P3 refresh on 10 sessions; open questions 12–13.
 
 ## Phase checklist
 - [x] Planning & research (S01)
@@ -15,7 +15,7 @@
 - [x] P3 EDA: T1 [x] T2 [x] T3 [x] T4 [x] T5 [x] T6 [x] (S06)
 - [x] P4 Features: T1 [x] T2 [x] T3 [x] T4 [x] (S07)
 - [x] P5 Labels & evaluation: T1 [x] T2 [x] T3 [x] T4 [x] T5 [x] (S08)
-- [ ] P6 Classical models: T1 [ ] T2 [ ] T3 [ ] T4 [ ] T5 [ ]
+- [x] P6 Classical models: T1 [x] T2 [x] T3 [x] T4 [x] T5 [x] (S09)
 - [ ] P7 Deep features (optional-but-recommended): T1 [ ] T2 [ ] T3 [ ] T4 [ ]
 - [ ] P8 Inference, notebook, README, report: T1 [ ] T2 [ ] T3 [ ] T4 [ ] T5 [ ] T6 [ ]
 - [ ] P9* API · [ ] P10* Web · [ ] P11* Android/voice
@@ -35,8 +35,12 @@
 | Mentor first-frame baseline (not single-shot): MAE / bal. acc (S08) | 4.99 / 0.49 | reports/tables/model_comparison.csv |
 | RF all single-shot features: grouped vs LEAKY MAE equiv h (S08) | 4.35 [1.60, 6.51] vs 0.17 | reports/tables/leakage_demo.csv |
 | RF all features: grouped vs LEAKY balanced accuracy, 4 levels (S08) | 0.35 [0.21, 0.53] vs 0.98 | reports/tables/leakage_demo.csv |
-| Best grouped balanced accuracy (class, single-shot model) | ? (P6) | reports/metrics/… |
-| Best grouped MAE hours (single-shot model) | ? (P6) | reports/metrics/… |
+| Selected model (linear, RGB_all), LOGO piece: bal. acc [CI], perm. p (S09) | 0.313 [0.227, 0.503], p = 0.228 | reports/tables/model_selection.json |
+| Selected model, LOGO piece: MAE equiv h [CI] (S09) | 4.16 [2.18, 5.83] | reports/tables/model_comparison.csv |
+| Best single light (exploratory): BLUE linear bal. acc / MAE; SVM bal. acc (S09) | 0.460 / 3.24 h; 0.522 | reports/tables/light_ablation.csv |
+| Session-relative linear bal. acc [CI] (needs first photo; S09) | 0.511 [0.384, 0.587] | reports/tables/relative_vs_single_shot.csv |
+| Calibration ECE before → after; bal. acc after (S09) | 0.567 → 0.296; 0.224 | reports/tables/calibration.csv |
+| OOD abstention grouped / in-sample threshold; RB-swap flagged (S09) | 3.6 % / 100 %; 51 % | reports/tables/ood_abstention.csv |
 
 ## Open questions (for user / data team)
 1. Meaning of D1/D2/D3 and A/B; is any piece filmed in two sessions? (blocks `piece_id`, `storage_day`): I don't know about it but mot probably they are seperate test for that experiment with D1 to Dx representing the days like day 1, day 2, etc. and A, B, C suggest number of experiment done in the same day, they might be simultaeuos or one after another.
@@ -58,9 +62,23 @@
    - **S08 done:** exp3_D1A is excluded from labels/evaluation via `exclude: true` + reason in `configs/samples.yaml` (raw data and features kept; one line flips it back). On cropping: every feature since P2 is computed **only inside the meat mask**, so background pixels never entered a feature; the "full" mask already includes the shadowed side (`full_*`, `shd_*`). S08 makes this explicit as a preprocessing step: `foodlens crops` writes a meat-only crop per frame (full meat = lit + shadow, background set to 0) for P7 and the visual review (`reports/figures/crops_sample_S08.png`).
 10. (S07, for the data team) EXP-3/4/5 used a different framing (meat 4–7 % of the frame vs 12–25 %, fully lit, so no shadow zone: `shd_*` NaN) and BLUE becomes very dim after ~5 h. Was the setup (camera distance, LED) changed? Also: EXP-2 D1A/D2A/D2B/D3A/D4A are on 31-08, 01-09, 02-09, 03-09: same piece(s) stored between days (fridge?) or a new piece each day? This decides `piece_id` / `storage_day` and the CV grouping in P5 (if the same piece, group by experiment).: i am not sure about it but lets assume it as seperate new piece most probably, so for now treat them as new piece for exp. But ensure that if i later inform you that if any of the exp is continuation of any bef then ensure that our pipeline can adapt to it immediately without much codebase change, for now treat them as new unless i specifically say that it is continuation.
    - **S08 done:** every session is its own piece (`piece_id` = session id). If you later learn that a session continues an earlier one, add `continues: <earlier session>` (optionally `storage_temp_c`) to its samples.yaml entry and rerun `foodlens labels && foodlens evaluate`. That needs no code change: the piece_id (CV group), storage_day and the cumulative age then follow automatically (tested). As a safety check every model is also scored with **leave-one-experiment-out** (in case the EXP-2 days are one piece).
-11. (S08, for the user/mentor) The `shd_*` (shadow-zone) features are missing exactly in the EXP-3/4/5 framing, so "is the value missing?" reveals the long overnight sessions: a setup proxy. They are excluded from the models (`evaluation.drop_feature_prefixes`) but kept in the table. Confirm, or ask the data team to keep the framing fixed in future sessions.
+11. (S08, for the user/mentor) The `shd_*` (shadow-zone) features are missing exactly in the EXP-3/4/5 framing, so "is the value missing?" reveals the long overnight sessions: a setup proxy. They are excluded from the models (`evaluation.drop_feature_prefixes`) but kept in the table. Confirm, or ask the data team to keep the framing fixed in future sessions.: [Me:] what i know about that is my mentor might also be testing with various angle and adjusted condition to have variable data to check if angle, zoom, camera distance, lighting position or after doing similar setup changes; to get to know about any parameter/visible changes that could find any pattern in meat light spots changes as it spoils, this will help us predict more accurately in any condition/lighting/angle of any image capture condition of meat. But, yes i will ask them to atleast have three long session experiments with same setup so that we have engough data to train, test and evaluate our model correctly for better accuracy and precision. More details and confirmation i will provide later when i ask from my mentor.
+
+12. (S09, for the user/mentor) Calibration trade-off: grouped sigmoid calibration makes the probabilities more honest (ECE 0.567 → 0.296) but lowers balanced accuracy (0.313 → 0.224). The S09 rule ("keep calibration if it lowers ECE") kept it in the saved model. Alternative: keep the uncalibrated class decision and report calibrated probabilities only. Which matters more for the app: honest confidence or the best level guess? (Decide before P8; one line in `models/select.py`/config.)
+13. (S09, for the mentor) BLUE-only models were the best single-shot models (exploratory, ~100 configurations tried). Proposal: pre-register a BLUE-only model now and test it ONLY on the new long same-setup sessions when they arrive; also add a grey/white card to the box (session-relative features reached 0.51).
 
 ## Recent sessions (newest first; keep 5 in full)
+### S09: 2026-11-18/19: P6 Classical models, T1–T5 (Claude Opus)
+- Did:
+  - T1 `models/classical.py` (impute → drop-const → scale → top-k → model; linear/RF/HGB/SVM; `GroupTunedModel` = nested inner GroupKFold, fixed defaults if < 3 groups; grids ≤ 12 in config `models`), `oof_predict` passes training groups only.
+  - T2 `models/{feature_sets,train}.py`, `evaluation/paired.py`, 4 experiment YAMLs (`configs/experiments`), CLI `train --experiment`; 160 runs; light check `evaluation/light_check.py`.
+  - T3 `models/calibration.py` (grouped sigmoid, ECE/Brier, F13), `inference/ood.py` (Mahalanobis, grouped threshold; in-sample rule flagged 100 %), RB-swap sanity check.
+  - T4 `evaluation/importance.py` (held-out permutation importance per feature and family, PDP), F14/F15.
+  - T5 selection rule fixed in config before results; `models/{select,card,finalize}.py`, CLI `finalize`; docs/08; `models/foodlens_spoil_v1/` (card tracked, joblib ignored).
+- Files: configs/{default.yaml,experiments/*}, src/foodlens/{config,config_models,cli}.py, evaluation/{cv,run,splits,paired,importance,light_check,p6_plots}.py, inference/ood.py, models/*, tests/test_{models,skeleton}.py, docs/08, reports/{tables,figures,metrics}, .gitignore, plan/*.
+- Verified: train/finalize `--limit 20` smoke runs, then full (experiments 73 min, finalize 10 min, no tracebacks); crops --tag S09 (12 new frames clean); figures inspected; check.sh PASS (152 tests).
+- Next: P7.
+
 ### S08: 2026-11-18: P5 Labels & evaluation, T1–T5 (Claude Opus)
 - Did:
   - User answers applied: exp3_D1A `exclude: true` (samples.yaml); every session its own piece + `continues:`/`storage_temp_c` chain support (`samples_config.py`); 4 freshness levels by equivalent hours + clock-hour ranges per temperature ("i" button); meat-only crop stage `foodlens crops` (`vision/crop.py`).
@@ -99,12 +117,8 @@
   - Acceptance met: 14:30:51 still MIXED; max loss 1/108 frames.
   - 3 sheets inspected (D3A, D1A, D2B); check.sh PASS.
 - Next: P3.T1–T3.
-### S04: 2026-11-18: P2 ROI & glints, T1–T3 (Claude Opus)
-- Did: `vision/roi.py` (segment_roi with multi-Otsu lowest threshold + floor, session_reference_mask, exclude_foreign, mask_iou), `vision/glints.py` (top-hat with outside-ROI fill, detect_glints, glint_features), `vision/glint_dynamics.py` (match_glints: Hungarian + merge/split rules), `vision/roi_batch.py` + `stages.run_roi`, CLI `foodlens roi`; config keys roi.{otsu_classes,min_level,ref_lights,foreign_*}, glint.{merge_area_ratio,sat_level}; warning W_ROI_LOW_IOU; skill image-pipeline updated.
-- Files: src/foodlens/vision/{roi,roi_batch,glints,glint_dynamics}.py, stages.py, cli.py, config.py, errors.py, configs/default.yaml, tests/test_{roi,glints,roi_stage}.py (+conftest level param), reports/tables/roi_{summary,sessions}.csv, plan/*.
-- Verified: roi --limit 20 then full (919 frames, 1 min 37 s, 919 ok, no NaN); visual overlays checked (holder excluded in D1B/D2A/D2B/D3A); check.sh PASS.
-- Next: P2.T4–T5.
 ## Older sessions (one sentence each)
+- S04 (2026-11-18, P2): ROI segmentation (multi-Otsu, holder exclusion), top-hat glint detection and glint matching, roi stage.
 - S03 (2026-11-18, P1): ingest + QC (manifest with EXIF/sequence/temperature, pixel light verification, DARK/MIXED/BLUR flags, inventory notebook).
 - S02 (2026-11-18, P0): uv project, package skeleton, typed errors, logging, validated pydantic config, CLI stubs, check.sh and 40 synthetic-image tests.
 - S01 (2026-11-18, planning): dataset inventory (944 jpg, 5 sessions), first-pass EDA (D1A blue-LED failure, glint trend flip), Papers 23/24, docs/01–06, AGENTS.md, skills and the phased plan.

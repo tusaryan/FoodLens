@@ -1,0 +1,133 @@
+{
+  "ci": {
+    "balanced_accuracy": [
+      0.23416420199279472,
+      0.5259326855742296
+    ],
+    "macro_f1": [
+      0.16559538706673824,
+      0.4427746133582285
+    ]
+  },
+  "config_hash": "a5ccdb3cd0",
+  "cv_scheme": "LOGO_piece_id",
+  "feature_set": [
+    "roi_median__RED",
+    "roi_p10__RED",
+    "roi_p25__RED",
+    "roi_p75__RED",
+    "roi_p90__RED",
+    "roi_iqr__RED",
+    "roi_mean__RED",
+    "roi_std__RED",
+    "roi_sat_frac__RED",
+    "full_median__RED",
+    "full_mean__RED",
+    "roi_cv__RED",
+    "roi_iqr_rel__RED",
+    "roi_mean_rel_ref__RED",
+    "glint_density__RED",
+    "glint_area_frac__RED",
+    "glint_size_p50__RED",
+    "glint_size_p90__RED",
+    "glint_size_max__RED",
+    "glint_ecc_mean__RED",
+    "glint_sat_frac__RED",
+    "glint_brightness_median__RED",
+    "glint_brightness_rel__RED",
+    "glintabs_density__RED",
+    "glintabs_area_frac__RED",
+    "glintabs_size_p50__RED",
+    "glintabs_size_p90__RED",
+    "glintabs_size_max__RED",
+    "glintabs_ecc_mean__RED",
+    "glintabs_sat_frac__RED",
+    "glintabs_brightness_median__RED",
+    "glcm_contrast__RED",
+    "glcm_homogeneity__RED",
+    "glcm_energy__RED",
+    "glcm_correlation__RED",
+    "lbp_0__RED",
+    "lbp_1__RED",
+    "lbp_2__RED",
+    "lbp_3__RED",
+    "lbp_4__RED",
+    "lbp_5__RED",
+    "lbp_6__RED",
+    "lbp_7__RED",
+    "lbp_8__RED",
+    "lbp_9__RED",
+    "lbp_entropy__RED"
+  ],
+  "git_commit": "86e99f30c8deb4067a7baadc2ff349d3dbef440b",
+  "group_col": "piece_id",
+  "label_definition": "B: equiv_hours_25C (T_min -8.0 \u00b0C, T_ref 25.0 \u00b0C) thresholds [2.0, 6.0, 12.0] h -> ['fresh', 'use_soon', 'quality_loss', 'spoiled_risk']",
+  "metrics": {
+    "balanced_accuracy": 0.35599029292049533,
+    "brier": 0.9182757334571623,
+    "classes": [
+      "fresh",
+      "use_soon",
+      "quality_loss",
+      "spoiled_risk"
+    ],
+    "confusion_matrix": [
+      [
+        145,
+        81,
+        1,
+        6
+      ],
+      [
+        156,
+        146,
+        0,
+        58
+      ],
+      [
+        115,
+        28,
+        0,
+        113
+      ],
+      [
+        245,
+        2,
+        0,
+        162
+      ]
+    ],
+    "ece": 0.2907108602486871,
+    "macro_f1": 0.30769939155681714,
+    "per_class": {
+      "fresh": {
+        "precision": 0.21936459909228442,
+        "recall": 0.6223175965665236,
+        "support": 233
+      },
+      "quality_loss": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 256
+      },
+      "spoiled_risk": {
+        "precision": 0.4778761061946903,
+        "recall": 0.3960880195599022,
+        "support": 409
+      },
+      "use_soon": {
+        "precision": 0.5680933852140078,
+        "recall": 0.40555555555555556,
+        "support": 360
+      }
+    }
+  },
+  "model": "rf__RED",
+  "n_groups": 9,
+  "n_samples": 1258,
+  "notes": "rf (nested grouped tuning) on feature set RED (46 columns)",
+  "permutation": {},
+  "run_id": "rf__RED__freshness_class__LOGO_piece_id",
+  "target": "freshness_class",
+  "task": "classification"
+}

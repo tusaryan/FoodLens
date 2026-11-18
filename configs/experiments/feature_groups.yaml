@@ -1,0 +1,11 @@
+# P6.T2.2: what each feature group adds (cumulative, all lights).
+name: feature_groups
+description: cumulative feature groups intensity -> +glint -> +texture -> +ratios (= RGB_all)
+models: [linear, rf, hgb, svm]
+feature_sets: [intensity, intensity+glint, intensity+glint+texture, RGB_all]
+targets: [equiv_hours_25C, freshness_class]
+schemes: [LOGO_piece_id]
+permute: false
+paired: true
+reference_set: RGB_all
+table: feature_group_ablation
