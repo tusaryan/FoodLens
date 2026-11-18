@@ -23,6 +23,7 @@ from foodlens.config import Config
 from foodlens.errors import E_NO_MEAT_FOUND, W_ROI_LOW_IOU
 from foodlens.io.images import load_rgb
 from foodlens.logging_utils import get_logger
+from foodlens.qc.frame_qc import laplacian_variance
 from foodlens.vision.roi import (
     CHANNEL_INDEX,
     exclude_foreign,
@@ -36,6 +37,7 @@ from foodlens.vision.roi import (
 
 log = get_logger("vision.roi_batch")
 ROI_HASH_SECTIONS = ["roi", "vision"]
+OUTPUT_COLS = ["roi_iou_session", "crop_path", "sroi_mean", "lap_var_roi"]
 FRAME_COLS = ["seg_ok", "seg_reason", "roi_area_frac", "roi_cx", "roi_cy", "work_h", "work_w"]
 
 
@@ -121,8 +123,9 @@ def session_rois(
 def frame_outputs(
     row: dict[str, Any], ref: np.ndarray | None, cfg: Config, mask_dir: Path, crop_dir: Path
 ) -> dict[str, Any]:
-    """IoU of the frame mask vs the session ROI and the 8-bit crop of the verified channel."""
-    out: dict[str, Any] = {"roi_iou_session": np.nan, "crop_path": ""}
+    """IoU of the frame mask vs the session ROI, the 8-bit crop of the verified channel, and
+    inside the session ROI: ``sroi_mean`` (mean, 0-255) and ``lap_var_roi`` (Laplacian variance)."""
+    out: dict[str, Any] = dict.fromkeys(OUTPUT_COLS, np.nan) | {"crop_path": ""}
     if ref is None:
         return out
     shape = (int(row["work_h"]), int(row["work_w"]))
@@ -133,7 +136,10 @@ def frame_outputs(
     img = load_rgb(cfg.root / row["path"], cfg.vision.work_long_side)
     if img.shape[:2] != shape:
         raise ValueError(f"{row['frame_id']}: image {img.shape[:2]} != mask {shape}")
-    crop = img[y0:y1, x0:x1, CHANNEL_INDEX[row["light"]]]
+    c = CHANNEL_INDEX[row["light"]]
+    out["sroi_mean"] = float(img[..., c][ref_f].mean())
+    out["lap_var_roi"] = laplacian_variance(img, c, ref_f)
+    crop = img[y0:y1, x0:x1, c]
     crop_file = crop_dir / f"{row['frame_id']}.png"
     crop_file.parent.mkdir(parents=True, exist_ok=True)
     Image.fromarray(np.ascontiguousarray(crop)).save(crop_file)

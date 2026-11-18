@@ -20,7 +20,7 @@ from foodlens.logging_utils import get_logger  # noqa: E402
 from foodlens.viz import LIGHT_COLORS, save_fig  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-IMPLEMENTED = {"ingest", "qc", "roi"}
+IMPLEMENTED = {"ingest", "qc", "roi", "eda-sheets"}
 STAGES = ["ingest", "qc", "roi", "features", "labels", "train", "evaluate", "predict", "eda-sheets"]
 
 

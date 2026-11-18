@@ -29,3 +29,13 @@
 - 2026-11-18: `foodlens roi` does not touch the manifest (it writes roi_index.parquet), so a roi --limit run needs no ingest/qc rerun; the full run overwrites the --limit index.
 - 2026-11-18: Synthetic meat lit equally in all channels has BLUE/RED ≈ 1 and trips the holder rule; tests use level=45 for BLUE frames (real ratio ~0.4).
 - 2026-11-18: tests/test_skeleton.py used to run every stub stage with the REAL config and `--limit 20 --force`; once `roi` was implemented it overwrote data/processed/roi_index.parquet. The stub test now uses a tmp config; still re-verify real outputs after check.sh.
+- 2026-11-18: Per session×light MADs of mask area/centroid are tiny (≈ 0.5 px, < 0.1 % area), so a raw robust z > 6 flags jitter. The MAD floors (`qc.scene_floor_*`) are the real thresholds: 20 % area, 12 px, 13 % brightness.
+- 2026-11-18: Use a centred ROLLING median for scene-change z, not the session median. Sessions have slow trends (D2B meat settles ~23 px in the first 40 min) and persistent steps (D2A +30–65 % brightness at 12:59:32, the 92 s gap) that a session median would reject wholesale.
+- 2026-11-18: D1A shows a ~2 % brightness dip in RED/GREEN at ~13:34, when the blue LED was switched on (box opened?). D3A RED drops ~4 % at ~3.6 h. Both are below the 10 % step threshold; watch for them in P3 time series.
+- 2026-11-18: Never use GREEN/BLUE per-frame mask geometry as a scene signal: BLUE masks join lit box/tray strips from frame to frame (D1A 14:27:51, centroid z = 32 with the meat unchanged).
+- 2026-11-18: The median of uint8 pixels is quantised to whole grey levels (≈ 8 % at BLUE level ~12). Use the mean (or float data) for small relative changes on dim channels.
+- 2026-11-18: A stage that rejects on its own outputs must not select its input frames on the final status, or a re-run drops the rejects and un-rejects them. The roi stage selects on `qc_pre_roi`.
+- 2026-11-18: Run order is now ingest → qc → roi (roi re-runs qc). qc after roi gives the same result. An old roi_index without `sroi_mean`/`lap_var_roi` is skipped with a warning.
+- 2026-11-18: The session ROI covers only 75–90 % of the meat-like region. The dim, shadowed side (RED median 11–18) falls in the lowest multi-Otsu class. This is by design ("well-lit meat"), pending user sign-off.
+- 2026-11-18: The glint threshold is the abs_min floor (40) in 75/75 QA panels. On dim BLUE frames the top-hat rarely reaches 40, so the counts drop to 0 while specks remain visible: glint count is confounded with illumination level.
+- 2026-11-18: Photo contact sheets at 300 dpi are 3.5 MB each and git-tracked. Use `qa.dpi` = 150 and no SVG.

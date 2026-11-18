@@ -1,17 +1,20 @@
 # PROGRESS: single source of truth for "where are we"
 
 ## Current state (rewrite every session, 3–6 lines)
-- S04 (2026-11-18) finished **P2.T1–T3**: `vision/roi.py` (multi-Otsu ROI, session ROI, holder exclusion), `vision/glints.py` + `vision/glint_dynamics.py`, `foodlens roi` → `data/processed/roi_index.parquet` (919 rows, all roi_ok), session masks + crops under `data/interim/roi/<hash>/`. check.sh PASS (86 tests).
-- ROI design (changed vs the skill draft, skill updated): ONE session ROI per session = median of the RED frame masks minus bluish holder/tray regions touching its edge; used for all lights. Per-frame masks are QC only (RED IoU vs session ROI 0.87–0.99).
-- Glint detector works on real frames (5–456 glints per frame); the threshold is always the `glint.abs_min` floor (40). Check visually in P2.T5.
-- Next: **P2.T4–T5** (scene-change/drift QC using roi_index, QA contact sheets with glints).
+- S05 (2026-11-18) finished **P2** (T4–T5).
+  - `qc/scene_qc.py`: local robust z for transient scene changes, `drift_px`, persistent-step `scene_segment`.
+  - ROI-based `W_BLUR` (`lap_var_roi`) and `qc_pre_roi`; `ingest → qc → roi` now gives the final manifest and is idempotent.
+  - `foodlens eda-sheets` → `reports/figures/qa_roi_<session>.png`. check.sh PASS (97 tests).
+- Real data: 919 usable frames, 0 scene-change rejects (max |z| 4.0), 1 W_BLUR (D3A 13:41). One persistent scene step: exp2_D2A 12:59:32, +28/+45/+65 % R/G/B brightness, 54 frames after it.
+- QA sheets: the holder is excluded (D3A). The ROI covers 75–90 % of the meat (the dim shadowed side is excluded). The glint threshold is always the floor of 40, so BLUE glint counts collapse on dim sessions (open questions 6–7).
+- Next: **P3.T1–T3** (frame stats, start/middle/end, time series).
 - Blockers: data-team answers (docs/04 §D) still open; not needed until P5.
 
 ## Phase checklist
 - [x] Planning & research (S01)
 - [x] P0 Foundation: T1 [x] T2 [x] T3 [x] T4 [x] T5 [x] T6 [x] (S02)
 - [x] P1 Ingest & QC: T1 [x] T2 [x] T3 [x] T4 [x] T5 [x] T6 [x] (S03)
-- [ ] P2 ROI & glints: T1 [x] T2 [x] T3 [x] T4 [ ] T5 [ ] (S04)
+- [x] P2 ROI & glints: T1 [x] T2 [x] T3 [x] T4 [x] T5 [x] (S04, S05)
 - [ ] P3 EDA: T1 [ ] T2 [ ] T3 [ ] T4 [ ] T5 [ ] T6 [ ]
 - [ ] P4 Features: T1 [ ] T2 [ ] T3 [ ] T4 [ ]
 - [ ] P5 Labels & evaluation: T1 [ ] T2 [ ] T3 [ ] T4 [ ] T5 [ ]
@@ -34,8 +37,22 @@
 3. Freshness class boundaries: default proposal in P5 (confirm with the mentor).
 4. (S04, for the user) ROI = one fixed session ROI from RED frames applied to all lights, holder/tray removed by BLUE/RED > 1.0 at the ROI edge. Confirm this is acceptable (alternative: per-frame masks per light, which leak into the tray under BLUE).
 5. (S04, resolved) exp2_D3A IMG_20260902_134133 (W_BLUR) is kept: its ROI is normal (RED IoU 0.94, normal area). Defocus mainly affects glint/texture features; decide in P4 whether to NaN those for W_BLUR frames.
+6. (S05, for the user/mentor) The session ROI covers 75–90 % of the meat. It excludes the dim, shadowed side (RED median 11–18 vs 36–77 inside; clearest in D2B, where the right ~20 % of the piece is excluded). Keep "well-lit meat only" (current; low-SNR shadow pixels are out) or include shadowed meat? See reports/figures/qa_roi_exp2_D2B.png.
+7. (S05, decide in P4) The glint threshold is always the absolute floor `glint.abs_min` = 40 (75/75 QA panels). On dim BLUE sessions the counts fall to 0–40 while specks remain visible, so glint counts mix up illumination level and moisture. Proposal for P4: scale the floor by the ROI brightness (e.g. top-hat > k × `sroi_mean`) or use per-light floors, validated on the QA sheets.
+8. (S05, decide in P4/P5) exp2_D2A has a persistent +30–65 % brightness step at 12:59:32 (the 92 s capture gap; the meat did not move). Frames carry `scene_segment`. Should absolute-brightness features be corrected per segment, or should D2A be reported as a sensitivity case?
 
 ## Recent sessions (newest first; keep 5 in full)
+### S05: 2026-11-18: P2 ROI & glints, T4–T5 (Claude Opus)
+- Did:
+  - `qc/scene_qc.py`: rolling-median robust z with MAD floors; mask geometry scored for RED only; log global mean and `sroi_mean` for all lights; `drift_px`; step detector → `scene_segment` + scene_steps.csv.
+  - `apply_qc` ROI rules (`E_NO_MEAT_FOUND`, `E_SCENE_CHANGE`, ROI blur) and `qc_pre_roi`; roi stage re-runs qc.
+  - `qc/qa_sheets.py` + `foodlens eda-sheets`; config `qc.scene_*` / `qc.step_*` / `qa`; skill updated.
+- Files: src/foodlens/qc/{scene_qc,qa_sheets,frame_qc}.py, vision/roi_batch.py, stages.py, cli.py, config.py, viz.py, configs/default.yaml, tests/test_{scene_qc,qa_sheets,qc,roi_stage,skeleton}.py, reports/figures/qa_roi_*.png, reports/tables/{scene_steps,qa_sheet_frames,qc_summary}.csv, plan/*.
+- Verified:
+  - Smoke runs then full roi (919 ok) and eda-sheets (75 panels).
+  - Acceptance met: 14:30:51 still MIXED; max loss 1/108 frames.
+  - 3 sheets inspected (D3A, D1A, D2B); check.sh PASS.
+- Next: P3.T1–T3.
 ### S04: 2026-11-18: P2 ROI & glints, T1–T3 (Claude Opus)
 - Did: `vision/roi.py` (segment_roi with multi-Otsu lowest threshold + floor, session_reference_mask, exclude_foreign, mask_iou), `vision/glints.py` (top-hat with outside-ROI fill, detect_glints, glint_features), `vision/glint_dynamics.py` (match_glints: Hungarian + merge/split rules), `vision/roi_batch.py` + `stages.run_roi`, CLI `foodlens roi`; config keys roi.{otsu_classes,min_level,ref_lights,foreign_*}, glint.{merge_area_ratio,sat_level}; warning W_ROI_LOW_IOU; skill image-pipeline updated.
 - Files: src/foodlens/vision/{roi,roi_batch,glints,glint_dynamics}.py, stages.py, cli.py, config.py, errors.py, configs/default.yaml, tests/test_{roi,glints,roi_stage}.py (+conftest level param), reports/tables/roi_{summary,sessions}.csv, plan/*.

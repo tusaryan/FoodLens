@@ -37,7 +37,17 @@ qc:
   min_signal: 8.0            # pixels with max channel above this count as lit
   dominance_ratio: 0.6       # dominant channel share of lit-pixel mean needed to accept the light
   scene_z: 6.0               # |robust z| of ROI area/centroid/global mean above this -> SCENE_CHANGE
-  blur_div: 3.0              # Laplacian variance < (session-light p5 / blur_div) -> BLUR warning
+  blur_div: 3.0              # Laplacian variance (inside the session ROI) < (session-light p5 / blur_div) -> BLUR warning
+  scene_window: 9            # centred rolling-median window (frames, per session x light) for the scene z:
+                             # a local median follows slow trends and persistent steps (D2A +30 % at 13:00, S05)
+  scene_floor_log_area: 0.03 # MAD floor of log(per-frame ROI area fraction) (~3 %); raw MADs are ~0.5 %, so
+                             # without floors |z| > 6 flags sub-percent jitter (S05)
+  scene_floor_px: 2.0        # MAD floor of the per-frame ROI centroid (px at work resolution); raw MAD ~0.5 px
+  scene_floor_log_mean: 0.02 # MAD floor of log(lit-channel global mean) (~2 %)
+  step_k: 3                  # frames per light compared before/after a candidate scene step
+  step_min_log: 0.1          # |log shift| of the lit-channel global mean >= this (~10 %) -> persistent scene step
+                             # (only the D2A 13:00 step qualifies; D1A/D3A shifts are 2-4 %, S05)
+  step_merge_s: 300          # steps found in different lights within this many seconds = one session step
 
 roi:
   blur_sigma: 2.0            # Gaussian sigma (px at work resolution) before Otsu
@@ -73,6 +83,12 @@ vision:
   glcm_levels: 32            # GLCM grey levels
   lbp_p: 8                   # LBP neighbours
   lbp_r: 1                   # LBP radius (px)
+
+qa:                          # visual QA contact sheets (`foodlens eda-sheets`, P2.T5)
+  positions: [0.0, 0.25, 0.5, 0.75, 1.0]  # fractions of each session x light's usable frames (start..end)
+  crop_margin: 0.25          # crop = session-ROI bbox + this fraction of its size per side (shows holder/tray)
+  marker_px: 9.0             # radius (px at glint resolution) of the cyan glint-centroid circles
+  dpi: 150                   # PNG dpi of the sheets (git-tracked; 300 dpi gave 3.5 MB per sheet)
 
 triplet:
   max_span_s: 200            # max time span (s) of consecutive R, G, B frames forming one triplet

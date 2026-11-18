@@ -46,6 +46,13 @@ class QCConfig(_Section):
     dominance_ratio: float = Field(gt=0, le=1)
     scene_z: float = Field(gt=0)
     blur_div: float = Field(gt=0)
+    scene_window: int = Field(ge=3)
+    scene_floor_log_area: float = Field(gt=0)
+    scene_floor_px: float = Field(gt=0)
+    scene_floor_log_mean: float = Field(gt=0)
+    step_k: int = Field(ge=1)
+    step_min_log: float = Field(gt=0)
+    step_merge_s: float = Field(ge=0)
 
 
 class ROIConfig(_Section):
@@ -106,6 +113,13 @@ class TemperatureConfig(_Section):
     cache_subdir: str
 
 
+class QAConfig(_Section):
+    positions: list[float] = Field(min_length=1)
+    crop_margin: float = Field(ge=0)
+    marker_px: float = Field(gt=0)
+    dpi: int = Field(ge=50)
+
+
 class TripletConfig(_Section):
     max_span_s: float = Field(gt=0)
 
@@ -161,6 +175,7 @@ class Config(_Section):
     roi: ROIConfig
     glint: GlintConfig
     vision: VisionConfig
+    qa: QAConfig
     triplet: TripletConfig
     cv: CVConfig
     labels: LabelsConfig

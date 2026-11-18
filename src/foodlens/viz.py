@@ -10,8 +10,17 @@ LIGHT_COLORS: dict[str, str] = {"RED": "#d62728", "GREEN": "#2ca02c", "BLUE": "#
 FIG_DPI = 300
 
 
-def save_fig(fig: Figure, name: str, figures_dir: str | Path | None = None) -> Path:
+def save_fig(
+    fig: Figure,
+    name: str,
+    figures_dir: str | Path | None = None,
+    svg: bool = True,
+    dpi: int = FIG_DPI,
+) -> Path:
     """Save ``fig`` as ``<figures_dir>/<name>.png`` (300 dpi) and ``.svg``; return the PNG path.
+
+    ``dpi`` overrides the PNG resolution; ``svg=False`` skips the SVG (photo contact sheets
+    would embed tens of MB of raster data).
 
     ``figures_dir`` defaults to ``<paths.reports_dir>/figures`` from the default config.
     """
@@ -22,8 +31,9 @@ def save_fig(fig: Figure, name: str, figures_dir: str | Path | None = None) -> P
     out = Path(figures_dir)
     out.mkdir(parents=True, exist_ok=True)
     png = out / f"{name}.png"
-    fig.savefig(png, dpi=FIG_DPI, bbox_inches="tight")
-    fig.savefig(out / f"{name}.svg", bbox_inches="tight")
+    fig.savefig(png, dpi=dpi, bbox_inches="tight")
+    if svg:
+        fig.savefig(out / f"{name}.svg", bbox_inches="tight")
     return png
 
 

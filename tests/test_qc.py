@@ -12,12 +12,20 @@ from foodlens.errors import (
     E_DARK_FRAME,
     E_DECODE,
     E_MIXED_LIGHT,
+    E_NO_MEAT_FOUND,
     E_NO_TIME,
+    E_SCENE_CHANGE,
     W_BLUR,
     W_LIGHT_MISMATCH,
 )
 from foodlens.io.images import load_rgb
-from foodlens.qc.frame_qc import apply_qc, compute_frame_stats, qc_rejects, qc_summary
+from foodlens.qc.frame_qc import (
+    apply_qc,
+    compute_frame_stats,
+    laplacian_variance,
+    qc_rejects,
+    qc_summary,
+)
 from foodlens.qc.light_check import is_mismatch, light_stats
 
 CFG = load_config().model_copy(update={"n_jobs": 1})
@@ -130,6 +138,61 @@ def test_stats_cache_reused(tmp_path, make_meat_image):
     assert again.loc[0, "p95_max"] == -1.0
 
 
-@pytest.mark.skip(reason="scene-change detection needs the ROI; implemented in P2.T4")
-def test_scene_change_detected():
-    raise NotImplementedError
+def _roi_qc(frame_ids: list[str]) -> pd.DataFrame:
+    """A hand-made ``roi_qc_table`` result: all ROI ok, no scene change, sharp ROI."""
+    n = len(frame_ids)
+    return pd.DataFrame(
+        {
+            "frame_id": frame_ids,
+            "roi_ok": True,
+            "sroi_mean": 100.0,
+            "lap_var_roi": 50.0,
+            "scene_z": 1.0,
+            "scene_feature": "log_mean",
+            "scene_change": False,
+            "drift_px": 1.0,
+            "scene_segment": 0,
+        },
+        index=range(n),
+    )
+
+
+def test_scene_change_and_no_roi_rejected(tmp_path, make_meat_image):
+    imgs = {f"r{i}": make_meat_image("RED", seed=i) for i in range(21)}
+    man = _manifest(tmp_path, imgs, ["RED"] * 21)
+    stats = compute_frame_stats(man, CFG)
+    roi_qc = _roi_qc([f"s__r{i}" for i in range(21)])
+    roi_qc.loc[3, "scene_change"] = True
+    roi_qc.loc[5, "roi_ok"] = False
+    roi_qc.loc[8, "lap_var_roi"] = 0.5  # ROI blur, although the whole frame is sharp
+    df = apply_qc(man, stats, CFG, roi_qc).set_index("frame_id")
+    assert df.loc["s__r3", "qc_reasons"] == E_SCENE_CHANGE
+    assert df.loc["s__r5", "qc_reasons"] == E_NO_MEAT_FOUND
+    assert df.loc["s__r8", "qc_reasons"] == W_BLUR and df.loc["s__r8", "qc_status"] == "warn"
+    assert (df.loc[["s__r3", "s__r5"], "qc_pre_roi"] == "ok").all()  # ROI stage keeps them
+    assert df.loc[["s__r3", "s__r5"], "light"].isna().all()
+    assert df.loc["s__notime", "qc_pre_roi"] == "reject"
+    again = apply_qc(df.reset_index(), stats, CFG, roi_qc).set_index("frame_id")
+    pd.testing.assert_frame_equal(df, again[df.columns])  # idempotent
+
+
+def test_blur_falls_back_to_whole_frame_without_full_roi(tmp_path, make_meat_image):
+    imgs = {f"r{i}": make_meat_image("RED", seed=i) for i in range(4)}
+    man = _manifest(tmp_path, imgs, ["RED"] * 4)
+    stats = compute_frame_stats(man, CFG)
+    roi_qc = _roi_qc(["s__r0", "s__r1"])  # partial ROI index (a --limit run)
+    roi_qc.loc[0, "lap_var_roi"] = 0.01
+    df = apply_qc(man, stats, CFG, roi_qc).set_index("frame_id")
+    assert W_BLUR not in df.loc["s__r0", "qc_reasons"]  # whole-frame lap_var used
+    assert pd.isna(df.loc["s__r2", "roi_ok"]) and df.loc["s__r2", "qc_status"] == "ok"
+
+
+def test_laplacian_variance_inside_mask():
+    rng = np.random.default_rng(0)
+    img = np.zeros((60, 80, 3), np.uint8)
+    img[:, :40, 0] = rng.integers(0, 255, (60, 40))  # sharp texture on the left
+    img[:, 40:, 0] = 100  # flat on the right
+    right = np.zeros((60, 80), bool)
+    right[5:-5, 45:-5] = True
+    assert laplacian_variance(img, 0, right) == 0.0
+    assert laplacian_variance(img, 0, ~right) > 1000

@@ -14,9 +14,17 @@ description: Conventions and exact algorithms for FoodLens image handling - mani
 - Otherwise the light is the dominant channel by mean over pixels whose max channel > `qc.min_signal` (default 8). Require dominance ratio ≥ `qc.dominance_ratio` (default 0.6), else `MIXED` (reject).
 - Compare with the schedule label (`sequence_index % 3` → R,G,B). A mismatch is a warning; the pixel label wins.
 
-## Scene change / outliers
-- Per session and light: robust z-score (median/MAD) of the ROI area, ROI centroid and the global mean. |z| > `qc.scene_z` (default 6) → `SCENE_CHANGE`.
-- Blur: variance of the Laplacian on the ROI below the session-light 5th percentile / 3 → `BLUR` (warning only unless extreme).
+## Scene change / outliers (`qc/scene_qc.py`, applied by `foodlens qc` once `roi_index.parquet` exists; `roi` re-runs `qc`)
+- Per session and light, time-sorted: robust z = (x − centred rolling median over `qc.scene_window` frames) / max(1.4826·MAD of the residuals, floor). A ROLLING median (S05), because a session median flags slow trends (D2B meat settling) and the persistent D2A step.
+- Features: log lit-channel global mean and log mean of the lit channel inside the session ROI (`sroi_mean`) for all lights; log per-frame mask area and mask centroid (px) for `roi.ref_lights` (RED) only, because BLUE/GREEN per-frame masks join lit tray/box strips (S05).
+- MAD floors (`qc.scene_floor_*`) dominate on real data (raw MADs ≈ 0.5 px / 0.5 %), so |z| > `qc.scene_z` means: >20 % mask area, >12 px centroid, >13 % brightness vs the neighbouring frames → `E_SCENE_CHANGE` (reject).
+- `drift_px` = per-frame mask centroid distance from the session×light median (descriptive; BLUE is noisy).
+- Persistent steps: median log global mean of the `qc.step_k` frames after vs before differs ≥ `qc.step_min_log` → session step (lights merged within `qc.step_merge_s`), `scene_segment` per frame, `reports/tables/scene_steps.csv`. Kept, not rejected.
+- `qc_pre_roi` = status from the non-ROI rules; the ROI stage selects on it so re-runs are idempotent.
+- Blur: variance of the Laplacian inside the session ROI (`lap_var_roi`, Laplacian of the full plane, variance over ROI pixels) below the session-light 5th percentile / `qc.blur_div` → `W_BLUR` (warning). Falls back to the whole frame until every valid frame has an ROI.
+
+## Visual QA (`foodlens eda-sheets`, `qc/qa_sheets.py`)
+- Per session: rows = lights, columns = `qa.positions` of the usable frames; session ROI outline yellow, glint centroids cyan, crop = ROI bbox + `qa.crop_margin`. `reports/figures/qa_roi_<session>.png` + `tables/qa_sheet_frames.csv` (count, threshold per panel).
 
 ## ROI segmentation (`vision/roi.py`)
 1. Take the verified light's channel, Gaussian blur σ=2 px (at work resolution).

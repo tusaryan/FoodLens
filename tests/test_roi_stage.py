@@ -57,6 +57,22 @@ def test_roi_stage(tmp_path, write_tmp_config, make_meat_image, make_dark_image)
     assert ref.sum() == idx["sroi_area_px"].iloc[0]
     for f in ["roi_sessions.csv", "roi_summary.csv"]:
         assert (tmp_path / "reports" / "tables" / f).is_file()
+    assert idx["sroi_mean"].between(25, 255).all() and (idx["lap_var_roi"] > 0).all()
+    man = pd.read_parquet(tmp_path / "data" / "processed" / "manifest.parquet")
+    usable = man[man["qc_pre_roi"] != "reject"]
+    assert len(usable) == 5 and usable["roi_ok"].all()  # roi refreshed the manifest QC
+    assert {"scene_z", "drift_px", "scene_segment", "lap_var_roi"} <= set(man.columns)
+    assert (tmp_path / "reports" / "tables" / "scene_steps.csv").is_file()
+    r = runner.invoke(app, ["roi", "--config", cfg])  # idempotent: same frames, same QC
+    assert "STAGE DONE roi rows=5" in r.output
+    man2 = pd.read_parquet(tmp_path / "data" / "processed" / "manifest.parquet")
+    assert man2["qc_reasons"].tolist() == man["qc_reasons"].tolist()
+    r = runner.invoke(app, ["eda-sheets", "--config", cfg])
+    assert r.exit_code == 0, r.output
+    assert "STAGE DONE eda-sheets rows=15" in r.output  # 3 lights x 5 positions
+    assert (tmp_path / "reports" / "figures" / "qa_roi_exp1_D1A.png").is_file()
+    sheet = pd.read_csv(tmp_path / "reports" / "tables" / "qa_sheet_frames.csv")
+    assert (sheet["glint_count"] > 0).all() and (sheet["glint_thr"] >= 40).all()
     r2 = runner.invoke(app, ["roi", "--config", cfg, "--limit", "2"])  # cached masks reused
     assert "STAGE DONE roi rows=2" in r2.output
 

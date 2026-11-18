@@ -56,7 +56,8 @@ def ingest(
 
 @app.command()
 def qc(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: bool = ForceOpt):
-    """Verify lights and flag dark / mixed-light / blurred frames (P1)."""
+    """Verify lights; flag dark / mixed-light / blurred frames (P1) and, once `roi` has run, no-ROI
+    and scene-change frames (P2.T4)."""
     from foodlens.stages import run_qc
 
     df = run_qc(load_config(config), limit, force)
@@ -110,8 +111,17 @@ def predict(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force
 def eda_sheets(
     config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: bool = ForceOpt
 ):
-    """Render EDA contact sheets per session and light (P3)."""
-    _stub("eda-sheets", config, limit, force)
+    """QA contact sheets per session: session ROI + glints on start..end frames per light (P2.T5).
+
+    ``--limit`` = number of sessions; sheets are always re-rendered (``--force`` has no effect).
+    """
+    from foodlens.stages import run_qa_sheets
+
+    df = run_qa_sheets(load_config(config), limit)
+    floor = int((df["glint_thr"] <= load_config(config).glint.abs_min).sum())
+    typer.echo(f"qa sheets: {df['session_id'].nunique()} sessions, {len(df)} panels")
+    typer.echo(f"glint threshold at glint.abs_min floor: {floor}/{len(df)} panels")
+    stage_done("eda-sheets", len(df))
 
 
 if __name__ == "__main__":

@@ -5,6 +5,12 @@ Output locations (all derived from config paths):
 - ``<data_dir>/interim/qc/<hash>/frame_stats.parquet``: cached per-frame QC statistics.
 - ``<reports_dir>/tables/inventory.csv``, ``qc_summary.csv``; ``<reports_dir>/qc_rejects.csv``.
 - ``<data_dir>/processed/roi_index.parquet`` + ``interim/roi/<hash>/``; ``tables/roi_*.csv`` (P2).
+- ``<reports_dir>/tables/scene_steps.csv``: persistent scene steps per session (P2.T4).
+- ``<reports_dir>/figures/qa_roi_<session>.png`` + ``tables/qa_sheet_frames.csv`` (P2.T5).
+
+Stage order: ingest -> qc -> roi. ``qc`` applies the ROI-based rules (no ROI, scene change, ROI
+blur) when ``roi_index.parquet`` exists, and ``roi`` re-runs ``qc`` at its end, so the manifest
+QC columns always match the latest ROI index. Re-running either stage gives the same result.
 """
 
 from __future__ import annotations
@@ -68,8 +74,27 @@ def run_ingest(cfg: Config, limit: int | None, force: bool, with_temp: bool = Tr
     return len(df)
 
 
+def _roi_qc(man: pd.DataFrame, stats: pd.DataFrame, cfg: Config):
+    """ROI QC table + scene steps from the ROI index, or (None, None) if there is no usable one."""
+    from foodlens.qc.scene_qc import roi_qc_table
+
+    p = roi_index_path(cfg)
+    if not p.is_file():
+        log.info("no %s yet: ROI-based QC rules skipped (run `foodlens roi`)", p.name)
+        return None, None
+    try:
+        roi_qc, steps = roi_qc_table(man, stats, pd.read_parquet(p), cfg)
+    except KeyError as exc:
+        log.warning("ROI-based QC rules skipped: %s", exc)
+        return None, None
+    n_pre = int((man["frame_id"].isin(stats["frame_id"])).sum())
+    log.info("ROI QC: %d of %d frames in the ROI index", len(roi_qc), n_pre)
+    return roi_qc, steps
+
+
 def run_qc(cfg: Config, limit: int | None, force: bool) -> pd.DataFrame:
-    """Light verification + frame QC; rewrites the manifest with QC columns. Returns it."""
+    """Light verification + frame QC (+ ROI-based rules if the ROI index exists); rewrites the
+    manifest with QC columns. Returns it."""
     man = read_manifest(cfg)
     if limit is not None:
         man = man.head(limit)
@@ -80,9 +105,12 @@ def run_qc(cfg: Config, limit: int | None, force: bool) -> pd.DataFrame:
     if cached is not None:
         stats = pd.concat([cached[~cached["frame_id"].isin(stats["frame_id"])], stats])
     _write_parquet(stats, cache_file, cfg)
-    df = apply_qc(man, stats, cfg)
+    roi_qc, steps = _roi_qc(man, stats, cfg)
+    df = apply_qc(man, stats, cfg, roi_qc)
     _write_parquet(df, manifest_path(cfg), cfg)
     tables = tables_dir(cfg)
+    if steps is not None:
+        steps.to_csv(tables / "scene_steps.csv", index=False)
     qc_summary(df).to_csv(tables / "qc_summary.csv", index=False)
     qc_rejects(df).to_csv(cfg.path("reports_dir") / "qc_rejects.csv", index=False)
     inventory_table(df).to_csv(tables / "inventory.csv", index=False)
@@ -93,20 +121,21 @@ def roi_index_path(cfg: Config) -> Path:
     return cfg.path("data_dir") / "processed" / "roi_index.parquet"
 
 
-ROI_INDEX_COLS = ["frame_id", "session_id", "light", "qc_status", "path"]
+ROI_INDEX_COLS = ["frame_id", "session_id", "light", "qc_pre_roi", "path"]
 
 
 def run_roi(cfg: Config, limit: int | None, force: bool) -> pd.DataFrame:
-    """ROI for every QC-usable frame (qc_status ok/warn); writes ``roi_index.parquet``."""
+    """ROI for every frame usable by the non-ROI QC rules (``qc_pre_roi`` ok/warn); writes
+    ``roi_index.parquet``, then re-runs ``qc`` on the full manifest to apply the ROI rules."""
     from joblib import Parallel, delayed
 
     from foodlens.vision import roi_batch as rb
 
     man = read_manifest(cfg)
-    if "qc_status" not in man:
-        raise FileNotFoundError("manifest has no QC columns: run `foodlens qc` first")
-    frames = man[man["qc_status"].isin(["ok", "warn"])].sort_values("frame_id")
-    frames = frames[ROI_INDEX_COLS].reset_index(drop=True)
+    if "qc_pre_roi" not in man:
+        raise FileNotFoundError("manifest has no (current) QC columns: run `foodlens qc` first")
+    frames = man[man["qc_pre_roi"].isin(["ok", "warn"])].sort_values("frame_id")
+    frames = frames.assign(light=frames["pixel_light"])[ROI_INDEX_COLS].reset_index(drop=True)
     if limit is not None:
         frames = frames.head(limit)
     base = cfg.path("data_dir") / "interim" / "roi" / config_hash(cfg, rb.ROI_HASH_SECTIONS)
@@ -140,4 +169,27 @@ def run_roi(cfg: Config, limit: int | None, force: bool) -> pd.DataFrame:
         area_frac_median=("roi_area_frac", "median"),
     )
     summary.reset_index().to_csv(tables_dir(cfg) / "roi_summary.csv", index=False)
+    run_qc(cfg, None, force=False)  # refresh the manifest QC columns with the ROI rules
     return df
+
+
+def run_qa_sheets(cfg: Config, limit: int | None) -> pd.DataFrame:
+    """QA contact sheet per session (first ``limit`` sessions); returns the panel table."""
+    from foodlens.qc.qa_sheets import session_sheet
+    from foodlens.vision.roi_batch import read_mask
+
+    man = read_manifest(cfg)
+    sess_file = tables_dir(cfg) / "roi_sessions.csv"
+    if "roi_ok" not in man or not sess_file.is_file():
+        raise FileNotFoundError("no ROI QC in the manifest: run `foodlens roi` first")
+    sessions = pd.read_csv(sess_file).sort_values("session_id")
+    if limit is not None:
+        sessions = sessions.head(limit)
+    figures = cfg.path("reports_dir") / "figures"
+    tables = [
+        session_sheet(man, sid, read_mask(cfg.root / mp), cfg, figures)
+        for sid, mp in zip(sessions["session_id"], sessions["sroi_mask_path"], strict=True)
+    ]
+    out = pd.concat(tables, ignore_index=True)
+    out.to_csv(tables_dir(cfg) / "qa_sheet_frames.csv", index=False)
+    return out
