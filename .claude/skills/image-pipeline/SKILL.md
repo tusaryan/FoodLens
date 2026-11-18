@@ -52,6 +52,16 @@ description: Conventions and exact algorithms for FoodLens image handling - mani
 ## Triplets (`features/triplets.py`)
 - Within a session, sorted by time: group consecutive R, G, B frames whose timestamps span ≤ `triplet.max_span_s` (default 200). A triplet's time = the mean of its frames. Missing lights → partial triplet with NaN plus a `has_<light>` flag.
 
+## Per-triplet ROI (S07, `vision/triplet_roi.py`): the ROI of the P4 feature table and of inference
+- The fixed session ROI (above) is only valid when the meat does not move. In the 16-22 h EXP-3/4/5 sessions the meat slides / shrinks and the session median covered tray. So every triplet gets masks from ITS OWN RED frame (`segment_roi`) + BLUE frame (`exclude_foreign`), a neck cut (opening disk `features.roi_neck_r` = 25 px + largest component: aged, darker meat joins the dim lit tray strip through a thin neck), and `full_meat_mask` for lit + shadow. G/B frames use their triplet's masks; a triplet without RED/BLUE uses the nearest one in time (`roi_gap_s`).
+- Reference region per frame from its own channel (lit non-meat, > `eda.ref_gap_px` from the full meat).
+- The P2 session ROI / `eda-stats` / `eda-sample` still use the session masks: port them before refreshing P3 on the new sessions.
+
+## Features (P4, `foodlens features`)
+- `features/build.extract_frame_features(img, light, roi, cfg, shadow, ref)` is the single training + inference function. Main glints = relative rule with centroids within `features.glint_edge_px` of the ROI edge dropped (`glint_*`); old fixed-floor rule = `glintabs_*` baseline. Gain-free ratios: `roi_cv`, `roi_iqr_rel`, `roi_mean_rel_ref`, `shd_rel_roi`, `glint_brightness_rel`. LBP (`lbp_0..9`, `lbp_entropy`) next to GLCM.
+- Table post-processing (training only): W_BLUR -> glint/texture NaN (`blur_nan`); grey-level intensity features / per-segment step gain (`step_gain`).
+- Triplet table: `<feature>__<LIGHT>`, `<src>__ratio_<AB>` / `__logratio_<AB>`, `<col>__rel` (single_shot_ok False). Schema + units: `features/schema.py`, `features/specs.py`; dictionary `tables/feature_dictionary.csv`; QC `feature_qc.csv` (nothing dropped globally).
+
 ## Banned as model features
 Timestamp, file index, session id, orientation, image width/height, ROI centroid/bbox position.
 

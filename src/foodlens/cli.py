@@ -94,8 +94,15 @@ def eda_stats(
 
 @app.command()
 def features(config: Path | None = ConfigOpt, limit: int | None = LimitOpt, force: bool = ForceOpt):
-    """Compute per-frame and per-triplet features (P4)."""
-    _stub("features", config, limit, force)
+    """Frame + triplet feature tables, feature dictionary and feature QC (P4).
+
+    Cached per frame by config hash; ``--force`` re-extracts; ``--limit`` = first N usable frames.
+    """
+    from foodlens.features.run import run_features
+
+    out = run_features(load_config(config), limit, force)
+    typer.echo(f"features: {out}")
+    stage_done("features", out["triplets"])
 
 
 @app.command()

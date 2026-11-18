@@ -114,3 +114,31 @@ def test_unknown_session_gets_defaults(tmp_path, write_tmp_config):
     df = build_manifest(cfg, load_samples(cfg))
     assert df.loc[0, "session_id"] == "exp3_D9C" and df.loc[0, "experiment"] == "EXP-3"
     assert df.loc[0, "temp_mode"] == "weather" and pd.isna(df.loc[0, "piece_id"])
+
+
+def test_locate_session_hyphenated_folder():
+    """S07: folders exp-5_D1A fall back to the pattern and get the id exp5_D1A."""
+    from foodlens.io.manifest import locate_session
+
+    cap = load_config().capture
+    exp, sid = locate_session(Path("EXP-5_06-09-2026/exp-5_D1A/IMG_1.jpg"), cap, {})
+    assert (exp, sid) == ("EXP-5", "exp5_D1A")
+    exp, sid = locate_session(Path("EXP-1_x/exp1_D1B/IMG_1.jpg"), cap, {})
+    assert sid == "exp1_D1B"
+
+
+def test_duplicate_copy_rejected_and_sequence_unchanged(tmp_path, write_tmp_config):
+    """S07: a byte-identical "- Copy" file is rejected (E_DUPLICATE) and does not shift lights."""
+    import shutil
+
+    from foodlens.errors import E_DUPLICATE
+
+    s = _tree(tmp_path) / "EXP-1_x" / "exp1_D1A"
+    shutil.copy(s / "IMG_20260828_120100.JPG", s / "IMG_20260828_120100 - Copy.JPG")
+    cfg = load_config(write_tmp_config(tmp_path, sessions=SESSION))
+    df = build_manifest(cfg, load_samples(cfg))
+    by_stem = df.set_index(df["path"].map(lambda p: Path(p).stem))
+    assert by_stem.loc["IMG_20260828_120100 - Copy", "ingest_reason"] == E_DUPLICATE
+    assert by_stem.loc["IMG_20260828_120100", "ingest_status"] == "ok"
+    ok = df[df["ingest_status"] == "ok"].sort_values("seq_idx")
+    assert ok["schedule_light"].tolist() == ["RED", "GREEN", "BLUE", "RED"]

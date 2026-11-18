@@ -50,3 +50,12 @@
 - 2026-11-18: The RED-defined shadow is far less dark under BLUE: the LEDs light the meat from different angles, so "shadow" is light-specific.
 - 2026-11-18: Executed notebooks that embed full-resolution PNGs exceed the 5 MB limit (03 was 7.7 MB). Embed thumbnails (`show()` downscales to ~1100 px).
 - 2026-11-18: Adding a key to the `vision` config section changes the ROI cache hash (roi, vision); the next `foodlens roi` recomputes all masks (~1.5 min). roi_index keeps pointing at the old folder until then, which is fine.
+- 2026-11-18: New data (S07): EXP-2 folders were renamed `DATE-…` → `DATE_…` and two session folders are spelled `exp-2_D1A` / `exp-5_D1A`. samples.yaml `folder` paths must match exactly; the pattern fallback now drops hyphens.
+- 2026-11-18: The raw data contains byte-identical copies (`IMG_x - Copy.jpg`, `IMG_x(1).jpg`). They shift the R→G→B schedule and double-count frames; ingest rejects them by sha1 (`E_DUPLICATE`), keeping the shortest name.
+- 2026-11-18: The fixed session ROI fails in the 16-22 h sessions: the meat slides and shrinks, and the session-median mask becomes a wedge over the tray (exp3). Use per-triplet masks from the triplet's own RED/BLUE frames (`vision/triplet_roi.py`).
+- 2026-11-18: As meat darkens with age, the dim lit tray strip falls in the same multi-Otsu class and joins the RED mask through a thin neck. An opening with r=25 px (work res) cuts it; r=15 does not.
+- 2026-11-18: EXP-3/4/5 meat fills only 4-7 % of the frame and is fully lit (no shadow zone, `shd_*` NaN in ~42 % of frames); late BLUE frames are so dim they are JPEG-posterised.
+- 2026-11-18: A scene "step" can be the meat being moved, not the camera: exp3 19:55 meat +59/+111/+27 % R/G/B vs tray +7-16 %. Always compare meat vs `ref_mean` around a step before calling it a camera artefact.
+- 2026-11-18: The step detector runs on the global (tray-dominated) mean, but `step_correct` estimates the gain per column from the ROI values themselves, so a tray-only step (exp5 BLUE) barely changes the meat features.
+- 2026-11-18: Full `foodlens features` on 4817 frames takes ~23 min (glint-res loads + two top-hats + GLCM + LBP per frame); it is cached per frame in data/interim/features/<hash>/.
+- 2026-11-18: With 2x the sessions the S06 choices hold: relative-rule RED glint density falls in 10/10 sessions (abs rule 6/10).

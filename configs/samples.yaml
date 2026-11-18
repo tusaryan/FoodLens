@@ -20,9 +20,17 @@ sessions:
     pre_age_h: null
     temp: {mode: weather}
     notes: "glint-count trend opposite in sign to D1A"
+  exp2_D1A:
+    experiment: EXP-2
+    folder: EXP-2_31-08-2026_to_03-09-2026/DATE_31-08-2026/exp-2_D1A
+    piece_id: null
+    storage_day: null
+    pre_age_h: null
+    temp: {mode: weather}
+    notes: "added S07; folder spelled exp-2_D1A; 31-08 10:43-14:00 (EXP-2 day 1 by folder date)"
   exp2_D2A:
     experiment: EXP-2
-    folder: EXP-2_31-08-2026_to_03-09-2026/DATE-01-09-2026/exp2_D2A
+    folder: EXP-2_31-08-2026_to_03-09-2026/DATE_01-09-2026/exp2_D2A
     piece_id: null
     storage_day: null
     pre_age_h: null
@@ -30,7 +38,7 @@ sessions:
     notes: "one 92 s capture gap"
   exp2_D2B:
     experiment: EXP-2
-    folder: EXP-2_31-08-2026_to_03-09-2026/DATE-01-09-2026/exp2_D2B
+    folder: EXP-2_31-08-2026_to_03-09-2026/DATE_01-09-2026/exp2_D2B
     piece_id: null
     storage_day: null
     pre_age_h: null
@@ -38,9 +46,41 @@ sessions:
     notes: "images stored rotated (4624 px wide); apply exif_transpose"
   exp2_D3A:
     experiment: EXP-2
-    folder: EXP-2_31-08-2026_to_03-09-2026/DATE-02-09-2026/exp2_D3A
+    folder: EXP-2_31-08-2026_to_03-09-2026/DATE_02-09-2026/exp2_D3A
     piece_id: null
     storage_day: null
     pre_age_h: null
     temp: {mode: weather}
     notes: "images stored rotated (4624 px wide); apply exif_transpose"
+  exp2_D4A:
+    experiment: EXP-2
+    folder: EXP-2_31-08-2026_to_03-09-2026/DATE_03-09-2026/exp2_D4A
+    piece_id: null
+    storage_day: null
+    pre_age_h: null
+    temp: {mode: weather}
+    notes: "added S07; 03-09 08:30-13:39 (EXP-2 day 4 by folder date)"
+  exp3_D1A:
+    experiment: EXP-3
+    folder: EXP-3_04-09-2026/exp3_D1A
+    piece_id: null
+    storage_day: null
+    pre_age_h: null
+    temp: {mode: weather}
+    notes: "added S07; overnight 04-09 12:55 -> 05-09 04:49 (~16 h)"
+  exp4_D1A:
+    experiment: EXP-4
+    folder: EXP-4_05-09-2026/exp4_D1A
+    piece_id: null
+    storage_day: null
+    pre_age_h: null
+    temp: {mode: weather}
+    notes: "added S07; overnight 05-09 12:47 -> 06-09 11:21 (~22.6 h)"
+  exp5_D1A:
+    experiment: EXP-5
+    folder: EXP-5_06-09-2026/exp-5_D1A
+    piece_id: null
+    storage_day: null
+    pre_age_h: null
+    temp: {mode: weather}
+    notes: "added S07; folder spelled exp-5_D1A; overnight 06-09 13:47 -> 07-09 08:02 (~18.3 h)"

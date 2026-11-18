@@ -1,11 +1,11 @@
 # PROGRESS: single source of truth for "where are we"
 
 ## Current state (rewrite every session, 3–6 lines)
-- S06 (2026-11-18) finished **P3** (T1–T6): `foodlens eda-stats` → `frame_stats.parquet` (919 × 50) + `glint_props.parquet`; `foodlens eda` → F5–F8 + `eda_*` tables; `foodlens eda-sample` = new varied visual sample per session; notebook 03; `docs/07_EDA_FINDINGS.md`. check.sh PASS (109 tests).
-- Main result: meat brightness falls in 5/5 sessions under every light (MixedLM −4.0/−4.3/−5.4 %/h R/G/B); the lit tray/holder does not, so it is not LED drift. Absolute levels differ ~2× between pieces, so models need relative/ratio features.
-- Light comparison (`eda_light_comparison.csv`): RED most features significant in 5/5 (20); GREEN best brightness SNR; BLUE fastest relative change but dim/noisy. P6 now runs the full R/G/B/pairs/all ablation.
-- Relative glint rule (≥ 1.75 × surrounding meat) gives a consistent RED glint decline (5/5 vs 2/5 with the abs floor). Recommendations for open questions 4–8 are written under each answer below.
-- Next: **P4.T1–T4** (feature specs, frame + triplet features). Blockers: data-team answers (docs/04 §D) still open; needed from P5.
+- S07 (2026-11-18) finished **P4** (T1–T4) and absorbed the new data: 10 sessions / 4860 images (was 5 / 944); renamed `DATE_…` folders fixed in samples.yaml; 3 byte-identical copies rejected (`E_DUPLICATE`).
+- `foodlens features` → `features_frame.parquet` (4817 × 67) + `features_triplet.parquet` (1624 triplets, 1574 complete, 303 features); dictionary / QC / counts tables. check.sh PASS (123 tests).
+- Masks are now **per triplet** (`vision/triplet_roi.py`): in the 16–22 h EXP-3/4/5 sessions the meat moves and the P2 session ROI covered tray. Visual check of 34 new frames OK.
+- Quick check on all 10 sessions: relative RED glint density falls 10/10 (old rule 6/10); meat brightness falls 9/10 (exp2_D1A rises); GREEN LBP entropy rises 9/10.
+- Stale: P3 outputs (`frame_stats`, eda_* tables, key numbers, docs/07) still cover the old 5 sessions with session ROIs. Next: **P5** (labels + grouped evaluation); port `eda-stats`/`eda-sample` to triplet ROIs and refresh P3 when convenient.
 
 ## Phase checklist
 - [x] Planning & research (S01)
@@ -13,7 +13,7 @@
 - [x] P1 Ingest & QC: T1 [x] T2 [x] T3 [x] T4 [x] T5 [x] T6 [x] (S03)
 - [x] P2 ROI & glints: T1 [x] T2 [x] T3 [x] T4 [x] T5 [x] (S04, S05)
 - [x] P3 EDA: T1 [x] T2 [x] T3 [x] T4 [x] T5 [x] T6 [x] (S06)
-- [ ] P4 Features: T1 [ ] T2 [ ] T3 [ ] T4 [ ]
+- [x] P4 Features: T1 [x] T2 [x] T3 [x] T4 [x] (S07)
 - [ ] P5 Labels & evaluation: T1 [ ] T2 [ ] T3 [ ] T4 [ ] T5 [ ]
 - [ ] P6 Classical models: T1 [ ] T2 [ ] T3 [ ] T4 [ ] T5 [ ]
 - [ ] P7 Deep features (optional-but-recommended): T1 [ ] T2 [ ] T3 [ ] T4 [ ]
@@ -23,10 +23,11 @@
 ## Key numbers (filled by code outputs; never by hand)
 | Metric | Value | Source file |
 |---|---|---|
-| Frames total / usable | 944 / 919 | reports/tables/qc_summary.csv (TOTAL row, usable = ok + warn) |
-| Frames with ROI ok | 919 / 919 | reports/tables/roi_summary.csv (sum of roi_ok) |
-| Pooled meat-brightness slope R / G / B (%/h, MixedLM) | −4.0 / −4.3 / −5.4 | reports/tables/eda_key_numbers.csv |
-| Promising feature × light combinations (sign agrees ≥ 4/5) | 100 / 123 (mostly redundant brightness) | reports/tables/eda_key_numbers.csv |
+| Frames total / usable (S07, 10 sessions) | 4860 / 4817 | reports/tables/qc_summary.csv (TOTAL row, usable = ok + warn) |
+| Frames with ROI ok | 4829 / 4829 | reports/tables/roi_summary.csv (sum of roi_ok) |
+| Triplets total / complete | 1624 / 1574 | reports/tables/feature_counts.csv (TOTAL row) |
+| Pooled meat-brightness slope R / G / B (%/h, MixedLM; S06, OLD 5 sessions) | −4.0 / −4.3 / −5.4 | reports/tables/eda_key_numbers.csv |
+| Promising feature × light combinations (sign agrees ≥ 4/5; S06, OLD 5 sessions) | 100 / 123 (mostly redundant brightness) | reports/tables/eda_key_numbers.csv |
 | Best grouped balanced accuracy (class) | ? | reports/metrics/… |
 | Best grouped MAE hours | ? | reports/metrics/… |
 
@@ -45,7 +46,19 @@
 8. (S05, decide in P4/P5) exp2_D2A has a persistent +30–65 % brightness step at 12:59:32 (the 92 s capture gap; the meat did not move). Frames carry `scene_segment`. Should absolute-brightness features be corrected per segment, or should D2A be reported as a sensitivity case? i don't know about it should do what is logically and scientifically suitable for our model to accurately and correctly detect features so that in future it can adapt and works accurately too for any other messy data image.
    - **S06 recommendation:** the jump is a camera colour-balance change (+33/+59/+87 % R/G/B inside the ROI), not the meat. (a) Brightness: divide by the per-segment gain (implemented: `eda.trends.step_correct`); (b) prefer features that cancel it: meat ÷ surroundings (`roi_mean_rel_ref`, removes it under G and B) and cross-light ratios; (c) glint features after the jump: report D2A as a sensitivity case. For the future: lock white balance on the phone and put a grey card in the box (docs/04).
 
+9. (S07, for the data team) exp3_D1A at 19:55 (+7 h): the meat brightens +59/+111/+27 % R/G/B in one step while the tray changes only +7–16 %, so the piece was probably moved or turned over. Was it? Brightness is step-corrected; glint/texture after the step should be reported as a sensitivity case (like D2A).
+10. (S07, for the data team) EXP-3/4/5 used a different framing (meat 4–7 % of the frame vs 12–25 %, fully lit, so no shadow zone: `shd_*` NaN) and BLUE becomes very dim after ~5 h. Was the setup (camera distance, LED) changed? Also: EXP-2 D1A/D2A/D2B/D3A/D4A are on 31-08, 01-09, 02-09, 03-09: same piece(s) stored between days (fridge?) or a new piece each day? This decides `piece_id` / `storage_day` and the CV grouping in P5 (if the same piece, group by experiment).
+
 ## Recent sessions (newest first; keep 5 in full)
+### S07: 2026-11-18: P4 Features, T1–T4 + new data (Claude Opus)
+- Did:
+  - Data: samples.yaml fixed (`DATE_…` renames) + 5 new sessions; session folder fallback accepts `exp-5_D1A`; `E_DUPLICATE` for byte-identical copies; ingest/qc/roi/eda-sheets rerun on 4860 images.
+  - QA sheets showed the meat moving in the overnight sessions → `vision/triplet_roi.py` (per-triplet RED/BLUE masks, neck cut r=25, per-frame reference).
+  - T1 `features/{specs,schema}.py` + dictionary; T2 `features/build.py` (relative glints with edge band, abs baseline, ratios, LBP, W_BLUR NaN, step correction), `features/run.py` (cache, stage); T3 `features/triplets.py` (wide `__LIGHT`, cross-light ratios/log-ratios, `__rel`); T4 `features/qc.py`.
+- Files: configs/{default,samples}.yaml, src/foodlens/{features/*,vision/{texture,triplet_roi}.py,io/manifest.py,errors.py,config.py,cli.py,eda/{run,frame_stats}.py}, tests/test_{features,manifest,config,errors,skeleton}.py, reports/{tables,figures}, .claude/skills/image-pipeline, plan/*.
+- Verified: features --limit 20 then full (4817 frames, 1624 triplets, 0 all-NaN columns, 23 min); 34-frame visual sample; check.sh PASS (123 tests).
+- Next: P5.
+
 ### S06: 2026-11-18: P3 EDA, T1–T6 (Claude Opus)
 - Did:
   - T1: `eda/frame_stats.py`, `eda/meat_zones.py` (shadow zone + lit non-meat reference region), `vision/texture.py` (masked GLCM), `detect_glints_relative`; `foodlens eda-stats`.
@@ -76,10 +89,6 @@
 - Files: src/foodlens/{io,qc}/*, stages.py, cli.py, viz.py, errors.py, config.py, configs/*, tests/test_{manifest,qc,temperature,cli_stages}.py, notebooks/src/01_data_inventory.py, reports/{tables,figures}, plan/*.
 - Verified: full ingest (944 rows, ~5 s) + qc (~12 s); acceptance met (24 DARK in D1A only; mismatches = 24 DARK + 1 MIXED, explained); temp for all frames; check.sh PASS.
 - Next: P2.
-### S02: 2026-11-18: P0 Foundation (Claude Opus)
-- Did: uv project (Python 3.12, deps from P0.T1, no torch), package layout per docs/03 §6 with docstring-only stage modules, `errors.py` (codes + typed errors), `logging_utils.py` (rich, `FOODLENS_LOG`), `viz.py`, pydantic `config.py` (`load_config`, `load_samples`, `config_hash`, `cfg.path()`), `configs/default.yaml` + `samples.yaml` (5 sessions, piece_id/storage_day/pre_age_h null), typer CLI stubs, check.sh + check_sizes.py + build_notebooks.sh + uninstall_global_tools.sh, synthetic-image fixtures and 40 tests.
-- Files: pyproject.toml, uv.lock, .python-version, src/foodlens/**, configs/*, scripts/*, tests/*, README.md, plan/*.
-- Verified: check.sh PASS (ruff, format, 40 tests in ~2 s, size limits); `foodlens --help` lists 9 commands; build_notebooks.sh --check executed a throwaway notebook successfully (removed).
-- Next: P1.
 ## Older sessions (one sentence each)
+- S02 (2026-11-18, P0): uv project, package skeleton, typed errors, logging, validated pydantic config, CLI stubs, check.sh and 40 synthetic-image tests.
 - S01 (2026-11-18, planning): dataset inventory (944 jpg, 5 sessions), first-pass EDA (D1A blue-LED failure, glint trend flip), Papers 23/24, docs/01–06, AGENTS.md, skills and the phased plan.

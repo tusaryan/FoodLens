@@ -34,7 +34,7 @@ def test_default_config_loads():
 def test_samples_load_with_null_piece_ids():
     cfg = load_config()
     samples = load_samples(cfg)
-    assert len(samples.sessions) == 5
+    assert len(samples.sessions) == 10  # S07: 5 new sessions (exp2_D1A, exp2_D4A, exp3-5)
     assert all(s.piece_id is None for s in samples.sessions.values())
 
 

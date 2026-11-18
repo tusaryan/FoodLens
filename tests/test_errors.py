@@ -53,6 +53,7 @@ def test_all_codes_listed():
         "E_CONFIG",
         "E_NO_SESSION",
         "E_MIXED_LIGHT",
+        "E_DUPLICATE",
     }
     assert expected == errors.ALL_CODES
     for code in expected:

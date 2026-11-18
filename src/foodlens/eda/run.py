@@ -47,16 +47,14 @@ def usable_frames(cfg: Config) -> pd.DataFrame:
     return use.sort_values(["session_id", "ts"]).reset_index(drop=True)
 
 
-def run_frame_stats(cfg: Config, limit: int | None) -> pd.DataFrame:
-    """P3.T1: per-frame ROI statistics of every usable frame (first ``limit`` frames if given)."""
-    from foodlens.eda.frame_stats import compute_frame_stats
-    from foodlens.eda.meat_zones import reference_masks, session_zones, zones_figure
-    from foodlens.io.images import load_rgb
+def load_zones(frames: pd.DataFrame, cfg: Config):
+    """(zones, zone table, reference masks) for the sessions of the usable ``frames``.
+
+    zones: session -> (lit ROI, shadow zone); refs: (session, light) -> lit non-meat reference.
+    Shared by ``eda-stats`` and ``features`` so both measure exactly the same pixels."""
+    from foodlens.eda.meat_zones import reference_masks, session_zones
     from foodlens.vision.roi_batch import read_mask
 
-    frames = usable_frames(cfg)
-    if limit is not None:
-        frames = frames.head(limit)
     sessions = pd.read_csv(tables_dir(cfg) / "roi_sessions.csv")
     sessions = sessions[sessions["session_id"].isin(frames["session_id"])]
     zone_dir = cfg.path("data_dir") / "interim" / "eda" / config_hash(cfg, ZONE_HASH_SECTIONS)
@@ -68,7 +66,20 @@ def run_frame_stats(cfg: Config, limit: int | None) -> pd.DataFrame:
         s: read_mask(cfg.root / f)
         for s, f in zip(ztable["session_id"], ztable["full_mask_path"], strict=True)
     }
-    stats, props = compute_frame_stats(frames, zones, cfg, reference_masks(frames, full, cfg))
+    return zones, ztable, reference_masks(frames, full, cfg)
+
+
+def run_frame_stats(cfg: Config, limit: int | None) -> pd.DataFrame:
+    """P3.T1: per-frame ROI statistics of every usable frame (first ``limit`` frames if given)."""
+    from foodlens.eda.frame_stats import compute_frame_stats
+    from foodlens.eda.meat_zones import zones_figure
+    from foodlens.io.images import load_rgb
+
+    frames = usable_frames(cfg)
+    if limit is not None:
+        frames = frames.head(limit)
+    zones, ztable, refs = load_zones(frames, cfg)
+    stats, props = compute_frame_stats(frames, zones, cfg, refs)
     _write_parquet(stats, frame_stats_path(cfg), cfg)
     _write_parquet(props, glint_props_path(cfg), cfg)
     ztable.to_csv(tables_dir(cfg) / "eda_zones.csv", index=False)

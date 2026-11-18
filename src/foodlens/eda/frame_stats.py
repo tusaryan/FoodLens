@@ -50,7 +50,9 @@ def intensity_stats(values: np.ndarray, prefix: str) -> dict[str, float]:
     return {f"{prefix}{k}": float(x) for k, x in zip(INTENSITY_KEYS, vals, strict=True)}
 
 
-def _shadow_stats(ch: np.ndarray, shadow: np.ndarray, cfg: Config) -> dict[str, float]:
+def shadow_stats(ch: np.ndarray, shadow: np.ndarray, cfg: Config) -> dict[str, float]:
+    """``shd_median`` / ``shd_mean`` / ``shd_p90`` (0-255, relative glints excluded) and
+    ``shd_rglint_density`` (count per 10^4 px) of the bool ``shadow`` zone; NaN if it is tiny."""
     nan = float("nan")
     if shadow.sum() < cfg.glint.min_area_px * 10:
         return {"shd_median": nan, "shd_mean": nan, "shd_p90": nan, "shd_rglint_density": nan}
@@ -83,7 +85,7 @@ def channel_features(
     out |= glint_features(g_abs, area) | {"glint_thr": g_abs.threshold}
     out |= {f"r{k}": v for k, v in glint_features(g_rel, area).items()}
     out |= glcm_features(ch, lit, cfg.vision)
-    out |= _shadow_stats(ch, shadow, cfg)
+    out |= shadow_stats(ch, shadow, cfg)
     full = clean | shadow
     out |= {
         "full_median": float(np.median(ch[full])),

@@ -141,6 +141,15 @@ class EDAConfig(_Section):
     ref_min_level: float = Field(ge=0, le=255)
 
 
+class FeaturesConfig(_Section):
+    roi_neck_r: int = Field(ge=0)
+    glint_edge_px: int = Field(ge=0)
+    blur_nan_groups: list[str]
+    ratio_sources: list[str] = Field(min_length=1)
+    log_ratio_sources: list[str]
+    corr_max: float = Field(gt=0, le=1)
+
+
 class TripletConfig(_Section):
     max_span_s: float = Field(gt=0)
 
@@ -198,6 +207,7 @@ class Config(_Section):
     vision: VisionConfig
     qa: QAConfig
     eda: EDAConfig
+    features: FeaturesConfig
     triplet: TripletConfig
     cv: CVConfig
     labels: LabelsConfig

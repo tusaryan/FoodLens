@@ -17,7 +17,7 @@ import pandas as pd
 from joblib import Parallel, delayed
 
 from foodlens.config import CaptureConfig, Config, SamplesConfig
-from foodlens.errors import E_NO_SESSION, ConfigError, DataError
+from foodlens.errors import E_DUPLICATE, E_NO_SESSION, ConfigError, DataError
 from foodlens.io.exif import file_sha1, read_frame_meta
 from foodlens.logging_utils import get_logger
 
@@ -68,8 +68,14 @@ def locate_session(
     exp = next((m.group(0) for p in parts if (m := re.match(cap.experiment_pattern, p))), None)
     session = folder_map.get(Path(*parts).as_posix()) if parts else None
     if session is None:
-        session = next((p for p in reversed(parts) if re.fullmatch(cap.session_pattern, p)), None)
+        found = next((p for p in reversed(parts) if re.fullmatch(cap.session_pattern, p)), None)
+        session = normalise_session_id(found) if found else None
     return exp, session
+
+
+def normalise_session_id(folder: str) -> str:
+    """Session id from a folder name: hyphens dropped (``exp-5_D1A`` -> ``exp5_D1A``, S07)."""
+    return folder.replace("-", "")
 
 
 def _frame_row(
@@ -146,8 +152,21 @@ def _merge_samples(df: pd.DataFrame, samples: SamplesConfig) -> pd.DataFrame:
     )
 
 
+def mark_duplicates(df: pd.DataFrame) -> pd.DataFrame:
+    """Reject byte-identical copies (same sha1) of an ok file: the shortest file name is kept
+    (``IMG_x.jpg`` over ``IMG_x - Copy.jpg`` / ``IMG_x(1).jpg``), the others get E_DUPLICATE."""
+    df = df.copy()
+    ok = df[df["ingest_status"] == "ok"]
+    order = ok.assign(_n=ok["path"].str.len()).sort_values(["sha1", "_n", "path"])
+    dup = order.index[order.duplicated("sha1", keep="first")]
+    for i in dup:
+        log.warning("ingest reject %s: %s", df.at[i, "path"], E_DUPLICATE)
+    df.loc[dup, "ingest_status"], df.loc[dup, "ingest_reason"] = "reject", E_DUPLICATE
+    return df
+
+
 def _finalise(rows: list[dict[str, Any]], cfg: Config, samples: SamplesConfig) -> pd.DataFrame:
-    df = pd.DataFrame(rows)
+    df = mark_duplicates(pd.DataFrame(rows))
     for col in META_COLS:
         if col not in df:
             df[col] = None
@@ -178,7 +197,7 @@ def build_manifest(
     cached: dict[str, dict] = {}
     if previous is not None:
         keep = ["path", "sha1", "ingest_status", "ingest_reason"] + META_COLS
-        ok = previous[previous["ingest_reason"] != E_NO_SESSION]
+        ok = previous[~previous["ingest_reason"].isin([E_NO_SESSION, E_DUPLICATE])]
         cached = {r["path"]: r for r in ok[keep].to_dict("records")}
     rows = Parallel(n_jobs=cfg.n_jobs)(
         delayed(_frame_row)(p, cfg, folder_map, cached) for p in files

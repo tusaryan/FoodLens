@@ -22,7 +22,8 @@ capture:
   image_exts: [.jpg, .jpeg, .png]   # matched case-insensitively
   ignore_dir_substr: _sorted        # folders whose name contains this are skipped (case-insensitive)
   experiment_pattern: 'EXP-\d+'     # first path part matching -> experiment (EXP-1)
-  session_pattern: 'exp\d+_D\d+[A-Z]'  # folder name matching -> session_id (exp1_D1A)
+  session_pattern: 'exp-?\d+_D\d+[A-Z]'  # folder name matching -> session_id (exp1_D1A); hyphens are
+                                         # dropped (folders exp-2_D1A / exp-5_D1A, S07)
   filename_time_pattern: 'IMG_(\d{8}_\d{6})'  # fallback capture time from the file name
   filename_time_format: '%Y%m%d_%H%M%S'
 
@@ -116,6 +117,19 @@ eda:                         # exploratory analysis (P3: `foodlens eda-stats`, `
   ref_gap_px: 20             # reference region (lit tray/holder/walls, S06 LED-drift control) starts this many px
                              # (work resolution) outside the full-meat mask (meat drifts <= ~23 px, D2B)
   ref_min_level: 12.0        # ... and is brighter than this (0-255) in the light's session-median image
+
+features:                    # P4 feature table (`foodlens features`)
+  roi_neck_r: 25             # per-triplet ROI (vision/triplet_roi.py): opening disk radius (px, work resolution) that cuts
+                             # the lit tray strip joined to aged, darker meat (S07 QA: r=15 missed exp3 tails, r=25 removed
+                             # them all and keeps 94-99 % of the meat in the 2-6 h sessions)
+  glint_edge_px: 16          # relative glints whose centroid lies within this many px (glint resolution) of the session-ROI
+                             # edge are dropped: false hits next to the bright holder under BLUE (S06). ~2 x glint.tophat_r
+  blur_nan_groups: [glint, texture]  # W_BLUR frames: features of these groups -> NaN (defocus smears glints / texture;
+                                     # brightness stays valid, open question 5)
+  ratio_sources: [roi_mean, roi_median, full_mean, roi_mean_rel_ref]  # cross-light ratios A/B per triplet
+  log_ratio_sources: [roi_mean]  # ... and log(A/B) for these (symmetric, additive form for linear models)
+  corr_max: 0.98             # feature QC: |Pearson r| above this = redundant pair (reported; dropped later INSIDE the
+                             # training Pipeline, never globally)
 
 triplet:
   max_span_s: 200            # max time span (s) of consecutive R, G, B frames forming one triplet

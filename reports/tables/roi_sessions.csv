@@ -1,6 +1,11 @@
 session_id,sroi_area_frac,sroi_area_px,sroi_foreign_px,sroi_y0,sroi_x0,sroi_y1,sroi_x1,sroi_mask_path
-exp1_D1A,0.12362416585286458,97222,0,271,46,544,462,data/interim/roi/14df6d886b/session/exp1_D1A.png
-exp1_D1B,0.10933812459309895,85987,5231,263,111,564,496,data/interim/roi/14df6d886b/session/exp1_D1B.png
-exp2_D2A,0.16007359822591147,125887,10586,235,42,616,527,data/interim/roi/14df6d886b/session/exp2_D2A.png
-exp2_D2B,0.197509765625,155328,4692,239,140,756,558,data/interim/roi/14df6d886b/session/exp2_D2B.png
-exp2_D3A,0.23739115397135416,186692,11094,78,114,728,534,data/interim/roi/14df6d886b/session/exp2_D3A.png
+exp1_D1A,0.12362416585286458,97222,0,271,46,544,462,data/interim/roi/3739e03f6b/session/exp1_D1A.png
+exp1_D1B,0.10933812459309895,85987,5231,263,111,564,496,data/interim/roi/3739e03f6b/session/exp1_D1B.png
+exp2_D1A,0.13629150390625,107184,7404,234,85,600,483,data/interim/roi/3739e03f6b/session/exp2_D1A.png
+exp2_D2A,0.16007359822591147,125887,10586,235,42,616,527,data/interim/roi/3739e03f6b/session/exp2_D2A.png
+exp2_D2B,0.197509765625,155328,4692,239,140,756,558,data/interim/roi/3739e03f6b/session/exp2_D2B.png
+exp2_D3A,0.23739115397135416,186692,11094,78,114,728,534,data/interim/roi/3739e03f6b/session/exp2_D3A.png
+exp2_D4A,0.14603424072265625,114846,7454,263,0,575,494,data/interim/roi/3739e03f6b/session/exp2_D4A.png
+exp3_D1A,0.041469573974609375,32613,296,379,79,541,404,data/interim/roi/3739e03f6b/session/exp3_D1A.png
+exp4_D1A,0.026920318603515625,21171,15772,375,294,565,428,data/interim/roi/3739e03f6b/session/exp4_D1A.png
+exp5_D1A,0.033999125162760414,26738,0,389,202,567,407,data/interim/roi/3739e03f6b/session/exp5_D1A.png

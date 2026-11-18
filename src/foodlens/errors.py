@@ -17,6 +17,7 @@ E_MODEL_CAPABILITY = "E_MODEL_CAPABILITY"  # model cannot do what was asked
 E_CONFIG = "E_CONFIG"  # invalid or missing configuration
 E_NO_SESSION = "E_NO_SESSION"  # file is not inside a recognisable session folder
 E_MIXED_LIGHT = "E_MIXED_LIGHT"  # no single LED channel dominates (room light, mixed lights)
+E_DUPLICATE = "E_DUPLICATE"  # byte-identical copy of another raw file ("- Copy", "(1)"; S07)
 
 # ---- QC warning codes (frame kept, but flagged) ----
 W_LIGHT_MISMATCH = "W_LIGHT_MISMATCH"  # pixel light differs from the schedule light
@@ -37,6 +38,7 @@ ALL_CODES: frozenset[str] = frozenset(
         E_CONFIG,
         E_NO_SESSION,
         E_MIXED_LIGHT,
+        E_DUPLICATE,
     }
 )
 
